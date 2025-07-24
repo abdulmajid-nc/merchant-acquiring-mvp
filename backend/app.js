@@ -19,6 +19,19 @@ db.serialize(() => {
   )`);
 });
 
+app.get('/', (req, res) => {
+  res.json({
+    message: "Merchant Acquiring API is running",
+    endpoints: {
+      merchantList: "/api/merchants",
+      merchantStatus: "/api/merchant/:id",
+      register: "/api/merchant/register (POST)",
+      updateStatus: "/api/merchant/:id/status (PUT)"
+    },
+    version: "1.0.0"
+  });
+});
+
 app.post('/api/merchant/register', (req, res) => {
   const { name, email, business_type, docs } = req.body;
   db.run(
