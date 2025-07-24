@@ -8,15 +8,22 @@ export default function Register() {
 
   const submit = async e => {
     e.preventDefault();
-    
-    // Use your actual Render backend URL here
-    const res = await fetch('https://merchant-acquiring-backend.onrender.com/api/merchant/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    setResult(data);
+    setResult(null);
+    try {
+      const res = await fetch('https://merchant-acquiring-backend.onrender.com/api/merchant/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResult({ error: data.error || 'Registration failed' });
+      } else {
+        setResult(data);
+      }
+    } catch (err) {
+      setResult({ error: err.message || 'Network error' });
+    }
   };
 
   return (
@@ -29,7 +36,8 @@ export default function Register() {
         <textarea name="docs" placeholder="Documents (comma separated URLs)" onChange={handleChange} />
         <button type="submit">Register</button>
       </form>
-      {result && <div>Registered! Merchant ID: {result.id}, Status: {result.status}</div>}
+      {result && result.error && <div style={{color:'red'}}>Error: {result.error}</div>}
+      {result && result.id && <div>Registered! Merchant ID: {result.id}, Status: {result.status}</div>}
     </div>
   );
 }
