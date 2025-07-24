@@ -8,7 +8,8 @@ export default function Register() {
 
   const submit = async e => {
     e.preventDefault();
-    const res = await fetch('http://localhost:4000/api/merchant/register', {
+    //https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.app/
+    const res = await fetch('https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.ap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
