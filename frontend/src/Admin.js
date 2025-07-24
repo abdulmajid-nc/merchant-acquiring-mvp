@@ -10,7 +10,7 @@ export default function Admin() {
   }, []);
 
   const updateStatus = async (id, status) => {
-    await fetch(`http://localhost:4000/api/merchant/${id}/status`, {
+    await fetch(`https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.ap/api/merchant/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
