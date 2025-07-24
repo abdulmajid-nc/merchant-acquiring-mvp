@@ -1,0 +1,334 @@
+name: Setup MVP Project
+
+on: workflow_dispatch
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create backend directory and files
+        run: |
+          mkdir -p backend
+          
+          cat > backend/package.json << 'EOF'
+          {
+            "name": "merchant-acquiring-backend",
+            "version": "1.0.0",
+            "main": "app.js",
+            "scripts": {
+              "start": "node app.js"
+            },
+            "dependencies": {
+              "cors": "^2.8.5",
+              "express": "^4.18.2",
+              "sqlite3": "^5.1.6"
+            }
+          }
+          EOF
+          
+          cat > backend/app.js << 'EOF'
+          const express = require('express');
+          const cors = require('cors');
+          const sqlite3 = require('sqlite3').verbose();
+
+          const app = express();
+          app.use(cors());
+          app.use(express.json());
+
+          const db = new sqlite3.Database(':memory:');
+
+          db.serialize(() => {
+            db.run(`CREATE TABLE merchants (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT,
+              email TEXT,
+              business_type TEXT,
+              status TEXT DEFAULT 'Pending',
+              docs TEXT
+            )`);
+          });
+
+          app.post('/api/merchant/register', (req, res) => {
+            const { name, email, business_type, docs } = req.body;
+            db.run(
+              `INSERT INTO merchants (name, email, business_type, docs) VALUES (?, ?, ?, ?)`,
+              [name, email, business_type, docs],
+              function (err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ id: this.lastID, status: 'Pending' });
+              }
+            );
+          });
+
+          app.get('/api/merchants', (req, res) => {
+            db.all(`SELECT * FROM merchants`, [], (err, rows) => {
+              if (err) return res.status(500).json({ error: err.message });
+              res.json(rows);
+            });
+          });
+
+          app.get('/api/merchant/:id', (req, res) => {
+            db.get(`SELECT * FROM merchants WHERE id = ?`, [req.params.id], (err, row) => {
+              if (err) return res.status(500).json({ error: err.message });
+              if (!row) return res.status(404).json({ error: "Merchant not found" });
+              res.json(row);
+            });
+          });
+
+          app.put('/api/merchant/:id/status', (req, res) => {
+            db.run(
+              `UPDATE merchants SET status = ? WHERE id = ?`,
+              [req.body.status, req.params.id],
+              function (err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ updated: true });
+              }
+            );
+          });
+
+          const PORT = process.env.PORT || 4000;
+          app.listen(PORT, () => {
+            console.log(`Backend running on port ${PORT}`);
+          });
+          EOF
+
+      - name: Create frontend directory and files
+        run: |
+          mkdir -p frontend/src
+          
+          cat > frontend/package.json << 'EOF'
+          {
+            "name": "merchant-acquiring-frontend",
+            "version": "1.0.0",
+            "dependencies": {
+              "react": "^18.2.0",
+              "react-dom": "^18.2.0",
+              "react-router-dom": "^6.22.3"
+            },
+            "scripts": {
+              "start": "react-scripts start"
+            }
+          }
+          EOF
+          
+          cat > frontend/src/App.js << 'EOF'
+          import React from 'react';
+          import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+          import Register from './Register';
+          import Status from './Status';
+          import Admin from './Admin';
+
+          function App() {
+            return (
+              <Router>
+                <nav>
+                  <Link to="/">Register</Link> | <Link to="/status">Status</Link> | <Link to="/admin">Admin</Link>
+                </nav>
+                <Routes>
+                  <Route path="/" element={<Register />} />
+                  <Route path="/status" element={<Status />} />
+                  <Route path="/admin" element={<Admin />} />
+                </Routes>
+              </Router>
+            );
+          }
+
+          export default App;
+          EOF
+          
+          cat > frontend/src/Register.js << 'EOF'
+          import React, { useState } from 'react';
+
+          export default function Register() {
+            const [form, setForm] = useState({ name: '', email: '', business_type: '', docs: '' });
+            const [result, setResult] = useState(null);
+
+            const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+
+            const submit = async e => {
+              e.preventDefault();
+              const res = await fetch('http://localhost:4000/api/merchant/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+              });
+              const data = await res.json();
+              setResult(data);
+            };
+
+            return (
+              <div>
+                <h2>Merchant Registration</h2>
+                <form onSubmit={submit}>
+                  <input name="name" placeholder="Business Name" onChange={handleChange} required />
+                  <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
+                  <input name="business_type" placeholder="Business Type" onChange={handleChange} required />
+                  <textarea name="docs" placeholder="Documents (comma separated URLs)" onChange={handleChange} />
+                  <button type="submit">Register</button>
+                </form>
+                {result && <div>Registered! Merchant ID: {result.id}, Status: {result.status}</div>}
+              </div>
+            );
+          }
+          EOF
+          
+          cat > frontend/src/Status.js << 'EOF'
+          import React, { useState } from 'react';
+
+          export default function Status() {
+            const [id, setId] = useState('');
+            const [merchant, setMerchant] = useState(null);
+
+            const checkStatus = async () => {
+              const res = await fetch(`http://localhost:4000/api/merchant/${id}`);
+              const data = await res.json();
+              setMerchant(data);
+            };
+
+            return (
+              <div>
+                <h2>Check Application Status</h2>
+                <input value={id} onChange={e => setId(e.target.value)} placeholder="Merchant ID" />
+                <button onClick={checkStatus}>Check</button>
+                {merchant && (
+                  <div>
+                    <p>Name: {merchant.name}</p>
+                    <p>Status: {merchant.status}</p>
+                  </div>
+                )}
+              </div>
+            );
+          }
+          EOF
+          
+          cat > frontend/src/Admin.js << 'EOF'
+          import React, { useEffect, useState } from 'react';
+
+          export default function Admin() {
+            const [merchants, setMerchants] = useState([]);
+
+            useEffect(() => {
+              fetch('http://localhost:4000/api/merchants')
+                .then(res => res.json())
+                .then(setMerchants);
+            }, []);
+
+            const updateStatus = async (id, status) => {
+              await fetch(`http://localhost:4000/api/merchant/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+              });
+              setMerchants(merchants.map(m => (m.id === id ? { ...m, status } : m)));
+            };
+
+            return (
+              <div>
+                <h2>Admin Panel</h2>
+                <table border="1">
+                  <thead>
+                    <tr>
+                      <th>ID</th><th>Name</th><th>Email</th><th>Type</th><th>Status</th><th>Docs</th><th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {merchants.map(m => (
+                      <tr key={m.id}>
+                        <td>{m.id}</td>
+                        <td>{m.name}</td>
+                        <td>{m.email}</td>
+                        <td>{m.business_type}</td>
+                        <td>{m.status}</td>
+                        <td>{m.docs}</td>
+                        <td>
+                          <button onClick={() => updateStatus(m.id, 'Approved')}>Approve</button>
+                          <button onClick={() => updateStatus(m.id, 'Rejected')}>Reject</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+          EOF
+          
+          cat > frontend/src/index.js << 'EOF'
+          import React from 'react';
+          import { createRoot } from 'react-dom/client';
+          import App from './App';
+
+          const container = document.getElementById('root');
+          const root = createRoot(container);
+          root.render(<App />);
+          EOF
+
+      - name: Update README
+        run: |
+          cat > README.md << 'EOF'
+          # Merchant Acquiring MVP
+
+          A proof-of-concept web application for merchant onboarding and admin review.
+
+          ## Features
+
+          - Merchant registration form
+          - Document submission (comma-separated URLs)
+          - Application status check by merchant ID
+          - Admin panel for reviewing and updating merchant status
+
+          ## Project Structure
+
+          ```
+          merchant-acquiring-mvp/
+            backend/
+              app.js
+              package.json
+            frontend/
+              package.json
+              src/
+                App.js
+                Register.js
+                Status.js
+                Admin.js
+                index.js
+          ```
+
+          ## Quick Start
+
+          ### Backend
+
+          ```bash
+          cd backend
+          npm install
+          npm start
+          ```
+
+          ### Frontend
+
+          ```bash
+          cd frontend
+          npm install
+          npm start
+          ```
+
+          ## Deployment
+
+          - **Frontend**: Deploy on [Vercel](https://vercel.com/) or [Netlify](https://netlify.com/) for a public URL.
+          - **Backend**: Deploy on [Render](https://render.com/), [Railway](https://railway.app/), or [Heroku](https://heroku.com/).
+
+          ## License
+
+          MIT
+          EOF
+
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "Initial MVP commit: merchant acquiring backend and frontend"
+          git push
