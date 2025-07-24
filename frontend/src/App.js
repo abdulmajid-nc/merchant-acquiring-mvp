@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Register from './Register';
 import Status from './Status';
 import Admin from './Admin';
-import MerchantManagement from './MerchantManagement';
-import AdminPanel from './AdminPanel';
-import TerminalManagement from './TerminalManagement';
+import MerchantManagementWrapper from './MerchantManagement';
+import AdminPanelWrapper from './AdminPanel';
+import TerminalManagementWrapper from './TerminalManagement';
 
 function App() {
   return (
@@ -22,9 +22,9 @@ function App() {
         <Route path="/" element={<Register />} />
         <Route path="/status" element={<Status />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/merchant-management" element={<MerchantManagement />} />
-        <Route path="/admin-panel" element={<AdminPanel />} />
-        <Route path="/terminal-management" element={<TerminalManagement />} />
+        <Route path="/merchant-management" element={<MerchantManagementWrapper />} />
+        <Route path="/admin-panel" element={<AdminPanelWrapper />} />
+        <Route path="/terminal-management" element={<TerminalManagementWrapper />} />
       </Routes>
     </Router>
   );
