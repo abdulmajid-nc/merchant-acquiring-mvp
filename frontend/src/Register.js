@@ -10,7 +10,7 @@ export default function Register() {
     e.preventDefault();
     //https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.app/
     //http://localhost:4000/api/merchant/register
-    const res = await fetch('https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.ap/api/merchant/register', {
+    const res = await fetch('https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.app/api/merchant/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
