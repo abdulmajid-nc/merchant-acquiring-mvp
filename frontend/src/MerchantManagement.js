@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Layout from './Layout';
 
 export default function MerchantManagement() {
   // Bulk account creation
@@ -88,68 +89,95 @@ export default function MerchantManagement() {
     setReviewResult(await res.json());
   };
 
+  const cardStyle = {
+    background: '#fff',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    padding: '2em',
+    marginBottom: '2em',
+    maxWidth: '500px',
+    margin: '2em auto'
+  };
+  const inputStyle = {
+    margin: '0.5em 0',
+    padding: '0.5em',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
+    width: '100%'
+  };
+  const buttonStyle = {
+    background: '#007bff',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    padding: '0.5em 1.5em',
+    margin: '0.5em 0',
+    cursor: 'pointer',
+    fontWeight: 'bold'
+  };
+  const labelStyle = { fontWeight: 'bold', marginTop: '1em' };
   return (
-    <div>
-      <h2>Merchant Management</h2>
+    <Layout>
+      <h2 style={{textAlign:'center', color:'#007bff', marginBottom:'2em'}}>Merchant Management</h2>
       {/* Bulk Account Creation */}
-      <div>
-        <h3>Bulk Account Creation</h3>
-        <input type="file" accept=".csv" onChange={handleCsvUpload} />
-        <select value={template} onChange={e => setTemplate(e.target.value)}>
+      <div style={cardStyle}>
+        <h3 style={{color:'#333'}}>Bulk Account Creation</h3>
+        <input type="file" accept=".csv" onChange={handleCsvUpload} style={inputStyle} />
+        <select value={template} onChange={e => setTemplate(e.target.value)} style={inputStyle}>
           <option value="retail">Retail</option>
           <option value="ecommerce">Ecommerce</option>
           <option value="service">Service-based</option>
         </select>
-        <button onClick={handleBulkCreate}>Upload & Create</button>
+        <button onClick={handleBulkCreate} style={buttonStyle}>Upload & Create</button>
         {bulkResult && <pre>{JSON.stringify(bulkResult, null, 2)}</pre>}
       </div>
       {/* Profile Update */}
-      <div>
-        <h3>Profile Update</h3>
-        <input name="name" placeholder="Name" onChange={e => setProfile({ ...profile, name: e.target.value })} />
-        <input name="email" placeholder="Email" onChange={e => setProfile({ ...profile, email: e.target.value })} />
-        <input name="business_type" placeholder="Business Type" onChange={e => setProfile({ ...profile, business_type: e.target.value })} />
-        <input name="bank" placeholder="Bank Account" onChange={e => setProfile({ ...profile, bank: e.target.value })} />
-        <input name="catalog" placeholder="Product/Service Catalog" onChange={e => setProfile({ ...profile, catalog: e.target.value })} />
-        <button onClick={handleProfileUpdate}>Update Profile</button>
+      <div style={cardStyle}>
+        <h3 style={{color:'#333'}}>Profile Update</h3>
+        <input name="name" placeholder="Name" onChange={e => setProfile({ ...profile, name: e.target.value })} style={inputStyle} />
+        <input name="email" placeholder="Email" onChange={e => setProfile({ ...profile, email: e.target.value })} style={inputStyle} />
+        <input name="business_type" placeholder="Business Type" onChange={e => setProfile({ ...profile, business_type: e.target.value })} style={inputStyle} />
+        <input name="bank" placeholder="Bank Account" onChange={e => setProfile({ ...profile, bank: e.target.value })} style={inputStyle} />
+        <input name="catalog" placeholder="Product/Service Catalog" onChange={e => setProfile({ ...profile, catalog: e.target.value })} style={inputStyle} />
+        <button onClick={handleProfileUpdate} style={buttonStyle}>Update Profile</button>
         {updateResult && <pre>{JSON.stringify(updateResult, null, 2)}</pre>}
       </div>
       {/* Profile Transitions */}
-      <div>
-        <h3>Profile Transitions</h3>
-        <select value={transitionType} onChange={e => setTransitionType(e.target.value)}>
+      <div style={cardStyle}>
+        <h3 style={{color:'#333'}}>Profile Transitions</h3>
+        <select value={transitionType} onChange={e => setTransitionType(e.target.value)} style={inputStyle}>
           <option value="upgrade">Upgrade</option>
           <option value="downgrade">Downgrade</option>
           <option value="transfer">Transfer Ownership</option>
           <option value="location">Add Location</option>
         </select>
-        <button onClick={handleTransition}>Trigger Transition</button>
+        <button onClick={handleTransition} style={buttonStyle}>Trigger Transition</button>
         {transitionResult && <pre>{JSON.stringify(transitionResult, null, 2)}</pre>}
       </div>
       {/* Account Closure */}
-      <div>
-        <h3>Account Closure</h3>
-        <button onClick={handleClosure}>Close Account</button>
+      <div style={cardStyle}>
+        <h3 style={{color:'#333'}}>Account Closure</h3>
+        <button onClick={handleClosure} style={buttonStyle}>Close Account</button>
         {closureResult && <pre>{JSON.stringify(closureResult, null, 2)}</pre>}
       </div>
       {/* Custom Config */}
-      <div>
-        <h3>Custom Account Configuration</h3>
-        <input name="fee" placeholder="Fee Structure" onChange={e => setConfig({ ...config, fee: e.target.value })} />
-        <input name="paymentOptions" placeholder="Payment Options" onChange={e => setConfig({ ...config, paymentOptions: e.target.value })} />
-        <label>
+      <div style={cardStyle}>
+        <h3 style={{color:'#333'}}>Custom Account Configuration</h3>
+        <input name="fee" placeholder="Fee Structure" onChange={e => setConfig({ ...config, fee: e.target.value })} style={inputStyle} />
+        <input name="paymentOptions" placeholder="Payment Options" onChange={e => setConfig({ ...config, paymentOptions: e.target.value })} style={inputStyle} />
+        <label style={labelStyle}>
           <input type="checkbox" checked={config.whiteLabel} onChange={e => setConfig({ ...config, whiteLabel: e.target.checked })} />
           White-labeling
         </label>
-        <button onClick={handleConfigUpdate}>Update Config</button>
+        <button onClick={handleConfigUpdate} style={buttonStyle}>Update Config</button>
         {configResult && <pre>{JSON.stringify(configResult, null, 2)}</pre>}
       </div>
       {/* Automated Review */}
-      <div>
-        <h3>Automated Account Review</h3>
-        <button onClick={handleReview}>Run Review</button>
+      <div style={cardStyle}>
+        <h3 style={{color:'#333'}}>Automated Account Review</h3>
+        <button onClick={handleReview} style={buttonStyle}>Run Review</button>
         {reviewResult && <pre>{JSON.stringify(reviewResult, null, 2)}</pre>}
       </div>
-    </div>
+    </Layout>
   );
 }
