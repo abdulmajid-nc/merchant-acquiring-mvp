@@ -12,7 +12,7 @@ export default function Register() {
     setResult(null);
     setDebug({ request: form });
     try {
-      const res = await fetch('https://merchant-acquiring-backend.onrender.com/api/merchant/register', {
+      const res = await fetch('https://merchant-acquiring-mvp.onrender.com/api/merchant/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
