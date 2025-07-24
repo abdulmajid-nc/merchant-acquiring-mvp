@@ -5,7 +5,7 @@ export default function Status() {
   const [merchant, setMerchant] = useState(null);
 
   const checkStatus = async () => {
-    const res = await fetch(`https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.ap/api/merchant/${id}`);
+    const res = await fetch(`https://merchant-acquiring-mvp.onrender.com/api/merchant/${id}`);
     const data = await res.json();
     setMerchant(data);
   };

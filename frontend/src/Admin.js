@@ -4,13 +4,13 @@ export default function Admin() {
   const [merchants, setMerchants] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/merchants')
+    fetch('https://merchant-acquiring-mvp.onrender.com/api/merchants')
       .then(res => res.json())
       .then(setMerchants);
   }, []);
 
   const updateStatus = async (id, status) => {
-    await fetch(`https://merchant-acquiring-a6mwwna44-abdul-majids-projects-21932dce.vercel.ap/api/merchant/${id}/status`, {
+    await fetch(`https://merchant-acquiring-mvp.onrender.com/api/merchant/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
