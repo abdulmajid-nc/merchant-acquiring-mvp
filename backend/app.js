@@ -1,35 +1,29 @@
 const express = require('express');
-const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
-
+const bodyParser = require('body-parser');
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 4000;
 
-const db = new sqlite3.Database(':memory:');
+// In-memory database for MVP
+let merchants = [];
+let merchantIdCounter = 1;
 
-db.serialize(() => {
-  db.run(`CREATE TABLE merchants (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT,
-    business_type TEXT,
-    status TEXT DEFAULT 'Pending',
-    docs TEXT
-  )`);
-});
+// Middleware
+app.use(bodyParser.json());
 
-// Add these headers to allow cross-origin requests
+// Add CORS middleware to allow cross-origin requests
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // For production, replace * with your Vercel URL
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
 });
 
+// Root route
 app.get('/', (req, res) => {
   res.json({
     message: "Merchant Acquiring API is running",
@@ -43,45 +37,62 @@ app.get('/', (req, res) => {
   });
 });
 
+// Register a new merchant
 app.post('/api/merchant/register', (req, res) => {
   const { name, email, business_type, docs } = req.body;
-  db.run(
-    `INSERT INTO merchants (name, email, business_type, docs) VALUES (?, ?, ?, ?)`,
-    [name, email, business_type, docs],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: this.lastID, status: 'Pending' });
-    }
-  );
+  
+  if (!name || !email || !business_type) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  const newMerchant = {
+    id: merchantIdCounter++,
+    name,
+    email,
+    business_type,
+    docs: docs || '',
+    status: 'pending',
+    created_at: new Date().toISOString()
+  };
+  
+  merchants.push(newMerchant);
+  res.status(201).json({ id: newMerchant.id, status: newMerchant.status });
 });
 
+// Get all merchants (admin)
 app.get('/api/merchants', (req, res) => {
-  db.all(`SELECT * FROM merchants`, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  res.json(merchants);
 });
 
+// Get merchant status by ID
 app.get('/api/merchant/:id', (req, res) => {
-  db.get(`SELECT * FROM merchants WHERE id = ?`, [req.params.id], (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!row) return res.status(404).json({ error: "Merchant not found" });
-    res.json(row);
-  });
+  const merchant = merchants.find(m => m.id === parseInt(req.params.id));
+  
+  if (!merchant) {
+    return res.status(404).json({ error: 'Merchant not found' });
+  }
+  
+  res.json({ id: merchant.id, status: merchant.status });
 });
 
+// Update merchant status (admin)
 app.put('/api/merchant/:id/status', (req, res) => {
-  db.run(
-    `UPDATE merchants SET status = ? WHERE id = ?`,
-    [req.body.status, req.params.id],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ updated: true });
-    }
-  );
+  const { status } = req.body;
+  const merchant = merchants.find(m => m.id === parseInt(req.params.id));
+  
+  if (!merchant) {
+    return res.status(404).json({ error: 'Merchant not found' });
+  }
+  
+  if (!['pending', 'approved', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+  
+  merchant.status = status;
+  res.json({ id: merchant.id, status: merchant.status });
 });
 
-const PORT = process.env.PORT || 4000;
+// Start server
 app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
