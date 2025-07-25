@@ -12,7 +12,7 @@ export default function Register() {
     setResult(null);
     setDebug({ request: form });
     try {
-      const res = await fetch('https://merchant-acquiring-mvp.onrender.com/api/merchant/register', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/merchant/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -33,12 +33,15 @@ export default function Register() {
   return (
     <div>
       <h2>Merchant Registration</h2>
-      <form onSubmit={submit}>
-        <input name="name" placeholder="Business Name" onChange={handleChange} required />
-        <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
-        <input name="business_type" placeholder="Business Type" onChange={handleChange} required />
-        <textarea name="docs" placeholder="Documents (comma separated URLs)" onChange={handleChange} />
-        <button type="submit">Register</button>
+      <form onSubmit={submit} className="card p-4 mx-auto mt-4" style={{maxWidth: '400px'}}>
+        <h2 className="h4 fw-bold text-primary mb-4 text-center">Merchant Registration</h2>
+        <input name="name" placeholder="Name" onChange={handleChange} className="form-control mb-3" />
+        <input name="email" placeholder="Email" onChange={handleChange} className="form-control mb-3" />
+        <input name="business_type" placeholder="Business Type" onChange={handleChange} className="form-control mb-3" />
+        <input name="bank" placeholder="Bank Account" onChange={handleChange} className="form-control mb-3" />
+        <input name="catalog" placeholder="Product/Service Catalog" onChange={handleChange} className="form-control mb-3" />
+        <button type="submit" className="btn btn-primary fw-bold w-100">Register</button>
+        {result && <pre className="bg-light rounded p-3 mt-3 text-sm overflow-auto">{JSON.stringify(result, null, 2)}</pre>}
       </form>
       {result && result.error && <div style={{color:'red'}}>Error: {result.error}</div>}
       {result && result.id && <div>Registered! Merchant ID: {result.id}, Status: {result.status}</div>}

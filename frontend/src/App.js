@@ -7,25 +7,29 @@ import MerchantManagementWrapper from './MerchantManagement';
 import AdminPanelWrapper from './AdminPanel';
 import TerminalManagementWrapper from './TerminalManagement';
 
+import Layout from './Layout';
+
+function RegisterWrapper() {
+  return <Register />;
+}
+
+function StatusWrapper() {
+  return <Status />;
+}
+
 function App() {
   return (
     <Router>
-      <nav style={{marginBottom: '1em'}}>
-        <Link to="/">Register</Link> |{' '}
-        <Link to="/status">Status</Link> |{' '}
-        <Link to="/admin">Admin</Link> |{' '}
-        <Link to="/merchant-management">Merchant Management</Link> |{' '}
-        <Link to="/admin-panel">Admin Panel</Link> |{' '}
-        <Link to="/terminal-management">Terminal Management</Link>
-      </nav>
-      <Routes>
-        <Route path="/" element={<Register />} />
-        <Route path="/status" element={<Status />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/merchant-management" element={<MerchantManagementWrapper />} />
-        <Route path="/admin-panel" element={<AdminPanelWrapper />} />
-        <Route path="/terminal-management" element={<TerminalManagementWrapper />} />
-      </Routes>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<RegisterWrapper />} />
+          <Route path="/status" element={<StatusWrapper />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/merchant-management" element={<MerchantManagementWrapper />} />
+          <Route path="/admin-panel" element={<AdminPanelWrapper />} />
+          <Route path="/terminal-management" element={<TerminalManagementWrapper />} />
+        </Routes>
+      </Layout>
     </Router>
   );
 }
