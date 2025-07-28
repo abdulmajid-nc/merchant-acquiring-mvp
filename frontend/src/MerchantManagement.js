@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Tooltip } from 'bootstrap';
-import Layout from './Layout';
+import api, { API_ENDPOINTS, API_BASE_URL } from './utils/api';
 
 function MerchantManagement() {
+  // Helper for masking sensitive data
+  const maskAccount = acc => acc ? '****' + acc.slice(-4) : '';
+  // Helper for status badge
+  const statusBadge = s => s ? <span className={`badge bg-${s === 'active' ? 'primary' : s === 'suspended' ? 'warning text-dark' : 'danger'}`}>{s.charAt(0).toUpperCase() + s.slice(1)}</span> : null;
   const [selectedMerchant, setSelectedMerchant] = useState(null);
   const [merchants, setMerchants] = useState([]);
   const [bankAccount, setBankAccount] = useState({ account: '', bank: '' });
@@ -20,12 +25,78 @@ function MerchantManagement() {
   const [showConfirm, setShowConfirm] = useState({ type: '', id: null });
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/merchants`)
-      .then(res => res.json())
-      .then(data => setMerchants(data));
-    fetch(`${process.env.REACT_APP_API_URL}/api/merchants/archived`)
-      .then(res => res.json())
-      .then(data => setArchived(data.archived || []));
+    const fetchData = async () => {
+      try {
+        console.log('API configuration:', {
+          API_BASE_URL,
+          'process.env.REACT_APP_API_URL': process.env.REACT_APP_API_URL
+        });
+        console.log('Fetching merchants from:', API_BASE_URL + API_ENDPOINTS.MERCHANTS);
+        
+        // Fetch merchants directly first for debugging
+        const hardcodedUrl = 'http://localhost:4000/api/merchants';
+        console.log('Trying hardcoded URL:', hardcodedUrl);
+        
+        try {
+          const hardcodedResponse = await fetch(hardcodedUrl, { 
+            headers: { 'Accept': 'application/json' },
+            mode: 'cors'
+          });
+          
+          if (hardcodedResponse.ok) {
+            const hardcodedData = await hardcodedResponse.json();
+            console.log('Hardcoded URL response:', hardcodedData);
+            if (Array.isArray(hardcodedData) && hardcodedData.length > 0) {
+              setMerchants(hardcodedData);
+              setLoading(false);
+              return; // Exit early if we got data
+            }
+          } else {
+            console.error('Hardcoded fetch failed with status:', hardcodedResponse.status);
+          }
+        } catch (hardcodedError) {
+          console.error('Hardcoded fetch error:', hardcodedError);
+        }
+        
+        // Try with configured API_BASE_URL
+        try {
+          const response = await fetch(API_BASE_URL + API_ENDPOINTS.MERCHANTS, {
+            headers: { 'Accept': 'application/json' },
+            mode: 'cors'
+          });
+          
+          if (response.ok) {
+            const directData = await response.json();
+            console.log('Direct API response:', directData);
+            
+            if (Array.isArray(directData) && directData.length > 0) {
+              setMerchants(directData);
+              return; // Exit early if we got data
+            }
+          } else {
+            console.error('Direct fetch failed with status:', response.status);
+          }
+        } catch (directError) {
+          console.error('Direct fetch error:', directError);
+        }
+        
+        // Last resort: Try API utility
+        console.log('Attempting API utility fetch');
+        const [merchantsData, archivedData] = await Promise.all([
+          api.get(API_ENDPOINTS.MERCHANTS),
+          api.get(API_ENDPOINTS.MERCHANTS_ARCHIVED)
+        ]);
+        
+        console.log('API utility response:', merchantsData);
+        setMerchants(Array.isArray(merchantsData) ? merchantsData : []);
+        setArchived(archivedData.archived || []);
+      } catch (error) {
+        console.error('Failed to fetch merchants:', error);
+        setErrorMsg('Failed to fetch merchants. Check console for details.');
+      }
+    };
+    
+    fetchData();
   }, []);
 
   // Helper for feedback
@@ -140,13 +211,17 @@ function MerchantManagement() {
   };
 
   return (
-    <Layout>
       <div className="container py-4">
         <h2 className="display-5 fw-bold text-primary text-center mb-4">Merchant Management</h2>
         {/* Merchant List */}
         <div className="card mb-4">
           <div className="card-body">
-            <h3 className="h5 fw-semibold text-dark mb-3">Merchants</h3>
+            <h3 className="h5 fw-semibold text-dark mb-3">Merchants <i className="bi bi-info-circle" title="Status: Active, Suspended, Terminated"></i></h3>
+            <div className="mb-3">
+              <span className="badge bg-primary me-2">Active</span>
+              <span className="badge bg-warning text-dark me-2">Suspended</span>
+              <span className="badge bg-danger">Terminated</span>
+            </div>
             <table className="table table-bordered table-hover mb-4">
               <thead className="table-light">
                 <tr>
@@ -159,18 +234,31 @@ function MerchantManagement() {
                 </tr>
               </thead>
               <tbody>
-                {merchants.map(m => (
-                  <tr key={m.id}>
-                    <td>{m.id}</td>
-                    <td>{m.name}</td>
-                    <td>{m.email}</td>
-                    <td>{m.business_type}</td>
-                    <td>{m.status}</td>
-                    <td>
-                      <button onClick={() => setSelectedMerchant(m.id)} className="btn btn-primary btn-sm me-2">Select</button>
+                {merchants && merchants.length > 0 ? (
+                  merchants.map(m => (
+                    <tr key={m.id || Math.random()}>
+                      <td>{m.id}</td>
+                      <td>{m.name}</td>
+                      <td>{m.email}</td>
+                      <td>{m.business_type}</td>
+                      <td>{statusBadge(m.status)}</td>
+                      <td>
+                        <div className="btn-group" role="group" aria-label="Merchant Actions">
+                          <button onClick={() => setSelectedMerchant(m.id)} className="btn btn-primary btn-sm" title="View merchant details and actions">Select</button>
+                          <Link to={`/merchant/${m.id}/pricing`} className="btn btn-info btn-sm" title="Manage pricing and devices">Pricing & Devices</Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      <div className="alert alert-info mb-0">
+                        {merchants ? 'No merchants found.' : 'Loading merchants...'}
+                      </div>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -209,7 +297,7 @@ function MerchantManagement() {
           {notification.message}
         </div>
       )}
-              <h4 className="h6 fw-semibold text-dark mb-3 mt-4">Bank Accounts</h4>
+              <h4 className="h6 fw-semibold text-dark mb-3 mt-4">Bank Accounts <i className="bi bi-info-circle" title="Only last 4 digits of account shown"></i></h4>
               <input placeholder="Account" value={bankAccount.account} onChange={e => setBankAccount({ ...bankAccount, account: e.target.value })} className="form-control mb-2" />
               <input placeholder="Bank" value={bankAccount.bank} onChange={e => setBankAccount({ ...bankAccount, bank: e.target.value })} className="form-control mb-2" />
               <button onClick={async () => {
@@ -231,7 +319,7 @@ function MerchantManagement() {
               <ul>
                 {bankAccounts.map(b => (
                   <li key={b.account}>
-                    {b.account} ({b.bank}) <button onClick={() => setShowConfirm({ type: 'bank', id: b.account })} className="btn btn-danger btn-sm ms-2">Delete</button>
+                    {maskAccount(b.account)} ({b.bank}) <button onClick={() => setShowConfirm({ type: 'bank', id: b.account })} className="btn btn-danger btn-sm ms-2" title="Delete bank account">Delete</button>
                     {showConfirm.type === 'bank' && showConfirm.id === b.account && (
                       <div className="alert alert-warning mt-2">Are you sure? <button onClick={async () => {
                         await fetch(`${process.env.REACT_APP_API_URL}/api/merchant/${selectedMerchant}/bank/${showConfirm.id}`, { method: 'DELETE' });
@@ -243,7 +331,7 @@ function MerchantManagement() {
                   </li>
                 ))}
               </ul>
-              <h4 className="h6 fw-semibold text-dark mb-3 mt-4">Product/Service Catalog</h4>
+              <h4 className="h6 fw-semibold text-dark mb-3 mt-4">Product/Service Catalog <i className="bi bi-info-circle" title="Product/service catalog for merchant"></i></h4>
               <input placeholder="Name" value={catalogItem.name} onChange={e => setCatalogItem({ ...catalogItem, name: e.target.value })} className="form-control mb-2" />
               <input placeholder="Price" value={catalogItem.price} onChange={e => setCatalogItem({ ...catalogItem, price: e.target.value })} className="form-control mb-2" />
               <button onClick={async () => {
@@ -338,7 +426,7 @@ function MerchantManagement() {
         {/* Bulk Account Creation */}
         <div className="card mb-4">
           <div className="card-body">
-            <h3 className="h5 fw-semibold text-dark mb-3">Bulk Account Creation</h3>
+            <h3 className="h5 fw-semibold text-dark mb-3">Bulk Account Creation <i className="bi bi-upload" title="Upload CSV to create multiple merchants"></i></h3>
             <input type="file" accept=".csv" onChange={handleCsvUpload} className="form-control mb-3" />
             <select value={template} onChange={e => setTemplate(e.target.value)} className="form-select mb-3">
               <option value="retail">Retail</option>
@@ -350,7 +438,6 @@ function MerchantManagement() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 }
 

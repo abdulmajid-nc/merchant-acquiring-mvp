@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import api, { API_ENDPOINTS } from './utils/api';
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', business_type: '', docs: '' });
@@ -12,20 +14,12 @@ export default function Register() {
     setResult(null);
     setDebug({ request: form });
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/merchant/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      setDebug(prev => ({ ...prev, responseStatus: res.status, responseData: data }));
-      if (!res.ok) {
-        setResult({ error: data.error || 'Registration failed' });
-      } else {
-        setResult(data);
-      }
+      const data = await api.post(API_ENDPOINTS.MERCHANT_REGISTER, form);
+      setDebug(prev => ({ ...prev, responseStatus: 200, responseData: data }));
+      setResult(data);
     } catch (err) {
       setDebug(prev => ({ ...prev, fetchError: err.message || String(err) }));
+      setResult({ error: err.message || 'Registration failed' });
       setResult({ error: err.message || 'Network error' });
     }
   };

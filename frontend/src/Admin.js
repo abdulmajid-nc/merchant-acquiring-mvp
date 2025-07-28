@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import api, { API_ENDPOINTS } from './utils/api';
 
 export default function Admin() {
   const [merchants, setMerchants] = useState([]);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/merchants`)
-      .then(res => res.json())
-      .then(setMerchants);
+    const fetchMerchants = async () => {
+      try {
+        const data = await api.get(API_ENDPOINTS.MERCHANTS);
+        setMerchants(data);
+      } catch (error) {
+        console.error('Failed to fetch merchants:', error);
+      }
+    };
+    fetchMerchants();
   }, []);
 
   const updateStatus = async (id, status) => {
-    await fetch(`${process.env.REACT_APP_API_URL}/api/merchant/${id}/status`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    setMerchants(merchants.map(m => (m.id === id ? { ...m, status } : m)));
+    try {
+      await api.put(API_ENDPOINTS.MERCHANT_STATUS(id), { status });
+      setMerchants(merchants.map(m => (m.id === id ? { ...m, status } : m)));
+    } catch (error) {
+      console.error(`Failed to update merchant status: ${error.message}`);
+    }
   };
 
   return (

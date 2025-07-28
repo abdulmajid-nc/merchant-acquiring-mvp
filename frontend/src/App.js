@@ -6,6 +6,11 @@ import Admin from './Admin';
 import MerchantManagementWrapper from './MerchantManagement';
 import AdminPanelWrapper from './AdminPanel';
 import TerminalManagementWrapper from './TerminalManagement';
+import MccManagement from './MccManagement';
+import MerchantPricing from './MerchantPricing';
+import TestMerchantList from './TestMerchantList';
+import ApiDebugger from './ApiDebugger';
+import DirectApiTest from './DirectApiTest';
 
 import Layout from './Layout';
 
@@ -28,6 +33,11 @@ function App() {
           <Route path="/merchant-management" element={<MerchantManagementWrapper />} />
           <Route path="/admin-panel" element={<AdminPanelWrapper />} />
           <Route path="/terminal-management" element={<TerminalManagementWrapper />} />
+          <Route path="/mcc-management" element={<MccManagement />} />
+          <Route path="/merchant/:id/pricing" element={<MerchantPricing />} />
+          <Route path="/test-merchants" element={<TestMerchantList />} />
+          <Route path="/debug" element={<ApiDebugger />} />
+          <Route path="/direct-test" element={<DirectApiTest />} />
         </Routes>
       </Layout>
     </Router>

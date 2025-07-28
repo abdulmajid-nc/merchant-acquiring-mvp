@@ -14,6 +14,9 @@ const TerminalIcon = () => (
 const SettingsIcon = () => (
   <svg width="20" height="20" className="mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /><path strokeLinecap="round" strokeLinejoin="round" d="M20.4 15.9A8.001 8.001 0 0112 20a8.001 8.001 0 01-8.4-4.1" /></svg>
 );
+const MccIcon = () => (
+  <svg width="20" height="20" className="mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+);
 
 export default function Layout({ children }) {
   return (
@@ -37,6 +40,11 @@ export default function Layout({ children }) {
           <li className="nav-item mb-2">
             <Link to="/terminal-management" className="nav-link text-white fw-medium px-3 py-2">
               <TerminalIcon /> Terminals
+            </Link>
+          </li>
+          <li className="nav-item mb-2">
+            <Link to="/mcc-management" className="nav-link text-white fw-medium px-3 py-2">
+              <MccIcon /> MCC Codes
             </Link>
           </li>
           <li className="nav-item mb-2">

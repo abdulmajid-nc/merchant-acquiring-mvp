@@ -4,7 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // In-memory database for MVP
-let merchants = [
+global.merchants = [
   {
     id: 1,
     name: 'Acme Retail',
@@ -76,9 +76,155 @@ let merchants = [
         ]
       }
     ]
+  },
+  {
+    id: 3,
+    name: 'Tech World',
+    email: 'contact@techworld.com',
+    business_type: 'electronics',
+    docs: 'license1,permit2',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    address: '789 Tech Boulevard',
+    contact: '555-9012',
+    bank_accounts: [{ account: '567891234', bank: 'Digital Bank' }],
+    catalog: [{ id: 3, name: 'Smart Device', price: 499 }],
+    archived: false,
+    settlement_schedule: 'weekly',
+    logo: 'https://via.placeholder.com/150',
+    theme: 'blue',
+    white_label: true,
+    terminals: [
+      {
+        id: 301,
+        serial: 'POS-3001',
+        status: 'active',
+        model: 'Square Terminal',
+        location: 'Main Store',
+        transactions: [
+          { id: 'tx3011', amount: 499.99, currency: 'USD', status: 'Completed', date: '2025-07-22' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: 'Green Gardens',
+    email: 'info@greengardens.com',
+    business_type: 'retail',
+    docs: 'permit1',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    address: '101 Plant Avenue',
+    contact: '555-3456',
+    bank_accounts: [{ account: '123459876', bank: 'Nature Bank' }],
+    catalog: [
+      { id: 4, name: 'Indoor Plant', price: 25 },
+      { id: 5, name: 'Garden Tools Set', price: 120 }
+    ],
+    archived: false,
+    settlement_schedule: 'monthly',
+    logo: '',
+    theme: 'green',
+    white_label: false,
+    terminals: [
+      {
+        id: 401,
+        serial: 'POS-4001',
+        status: 'active',
+        model: 'Clover Mini',
+        location: 'Main Nursery',
+        transactions: []
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: 'Fashion Forward',
+    email: 'sales@fashionforward.com',
+    business_type: 'clothing',
+    docs: 'license1,tax2',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    address: '222 Style Street',
+    contact: '555-7890',
+    bank_accounts: [{ account: '456789123', bank: 'Fashion Bank' }],
+    catalog: [
+      { id: 6, name: 'Designer Shirt', price: 89 },
+      { id: 7, name: 'Premium Jeans', price: 120 }
+    ],
+    archived: false,
+    settlement_schedule: 'weekly',
+    logo: '',
+    theme: '',
+    white_label: false,
+    terminals: [
+      {
+        id: 501,
+        serial: 'POS-5001',
+        status: 'active',
+        model: 'Verifone P400',
+        location: 'Main Boutique',
+        transactions: [
+          { id: 'tx5011', amount: 209.00, currency: 'USD', status: 'Completed', date: '2025-07-21' }
+        ]
+      },
+      {
+        id: 502,
+        serial: 'POS-5002',
+        status: 'pending',
+        model: 'Verifone P400',
+        location: 'Mall Branch',
+        transactions: []
+      }
+    ]
   }
 ];
-let merchantIdCounter = 3;
+let merchantIdCounter = 6;
+
+// In-memory terminal database for unassigned terminals
+global.terminals = [
+  {
+    id: 601,
+    serial: 'POS-6001',
+    status: 'inactive',
+    model: 'PAX A920',
+    location: '',
+    transactions: []
+  },
+  {
+    id: 602,
+    serial: 'POS-6002',
+    status: 'inactive',
+    model: 'Verifone Carbon',
+    location: '',
+    transactions: []
+  },
+  {
+    id: 603,
+    serial: 'POS-6003',
+    status: 'inactive',
+    model: 'Ingenico Desk 3500',
+    location: '',
+    transactions: []
+  },
+  {
+    id: 604,
+    serial: 'POS-6004',
+    status: 'inactive',
+    model: 'Clover Flex',
+    location: '',
+    transactions: []
+  },
+  {
+    id: 605,
+    serial: 'POS-6005',
+    status: 'inactive',
+    model: 'Square Register',
+    location: '',
+    transactions: []
+  }
+];
 
 // Middleware
 app.use(bodyParser.json());
@@ -90,6 +236,61 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 }));
+
+// Import routes
+const merchantPricingRoutes = require('./routes/merchantPricing');
+
+// Use routes
+app.use('/api', merchantPricingRoutes);
+
+// Get all merchants
+app.get('/api/merchants', (req, res) => {
+  console.log('Merchants API called, responding with:', global.merchants);
+  res.json(global.merchants);
+});
+
+// Get a specific merchant by ID
+app.get('/api/merchants/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const merchant = global.merchants.find(m => m.id === id);
+  
+  if (!merchant) {
+    return res.status(404).json({ error: 'Merchant not found' });
+  }
+  
+  res.json(merchant);
+});
+
+// Get all terminals (including unassigned ones)
+app.get('/api/terminals', (req, res) => {
+  // Check for available filter (show only available/unassigned terminals)
+  const showOnlyAvailable = req.query.available === 'true';
+  
+  // Collect all terminals from merchants
+  const assignedTerminals = global.merchants
+    .filter(m => m.terminals && m.terminals.length)
+    .flatMap(m => m.terminals.map(t => ({
+      ...t,
+      merchant: m.id, // Add merchant ID reference
+      merchantName: m.name // Add merchant name for display
+    })));
+  
+  // Get unassigned terminals
+  const unassignedTerminals = global.terminals.map(t => ({...t, merchant: '', merchantName: ''}));
+  
+  // Return appropriate list based on filter
+  if (showOnlyAvailable) {
+    res.json({ terminals: unassignedTerminals });
+  } else {
+    // Return all terminals
+    res.json({ 
+      terminals: [...assignedTerminals, ...unassignedTerminals],
+      total: assignedTerminals.length + unassignedTerminals.length,
+      assigned: assignedTerminals.length,
+      unassigned: unassignedTerminals.length
+    });
+  }
+});
 
 // Root route
 app.get('/', (req, res) => {
@@ -370,6 +571,180 @@ app.put('/api/merchant/:id/status', (req, res) => {
   
   merchant.status = status;
   res.json({ id: merchant.id, status: merchant.status });
+});
+
+// In-memory MCC database
+let mccs = [
+  {
+    code: '5411',
+    description: 'Grocery Stores, Supermarkets',
+    category: 'Retail'
+  },
+  {
+    code: '5812',
+    description: 'Eating Places, Restaurants',
+    category: 'Food & Beverage'
+  },
+  {
+    code: '5912',
+    description: 'Drug Stores, Pharmacies',
+    category: 'Healthcare'
+  },
+  {
+    code: '4511',
+    description: 'Airlines, Air Carriers',
+    category: 'Travel'
+  },
+  {
+    code: '4112',
+    description: 'Passenger Railways',
+    category: 'Travel'
+  },
+  {
+    code: '4121',
+    description: 'Taxicabs and Limousines',
+    category: 'Travel'
+  },
+  {
+    code: '7011',
+    description: 'Hotels, Motels, Resorts',
+    category: 'Travel'
+  },
+  {
+    code: '4814',
+    description: 'Telecommunication Services',
+    category: 'Utilities'
+  },
+  {
+    code: '5311',
+    description: 'Department Stores',
+    category: 'Retail'
+  },
+  {
+    code: '5977',
+    description: 'Cosmetic Stores',
+    category: 'Retail'
+  },
+  {
+    code: '5732',
+    description: 'Electronics Stores',
+    category: 'Retail'
+  },
+  {
+    code: '5541',
+    description: 'Service Stations',
+    category: 'Retail'
+  },
+  {
+    code: '8011',
+    description: 'Doctors and Physicians',
+    category: 'Healthcare'
+  },
+  {
+    code: '8021',
+    description: 'Dentists and Orthodontists',
+    category: 'Healthcare'
+  },
+  {
+    code: '8099',
+    description: 'Health Practitioners',
+    category: 'Healthcare'
+  },
+  {
+    code: '8211',
+    description: 'Elementary and Secondary Schools',
+    category: 'Education'
+  },
+  {
+    code: '8220',
+    description: 'Colleges and Universities',
+    category: 'Education'
+  },
+  {
+    code: '7832',
+    description: 'Motion Picture Theaters',
+    category: 'Entertainment'
+  },
+  {
+    code: '6011',
+    description: 'Financial Institutions',
+    category: 'Financial Services'
+  }
+];
+
+// MCC Routes
+// Get all MCCs
+app.get('/api/mccs', (req, res) => {
+  res.json(mccs);
+});
+
+// Get MCC by code
+app.get('/api/mccs/:code', (req, res) => {
+  const mcc = mccs.find(m => m.code === req.params.code);
+  
+  if (!mcc) {
+    return res.status(404).json({ error: 'MCC not found' });
+  }
+  
+  res.json(mcc);
+});
+
+// Create new MCC
+app.post('/api/mccs', (req, res) => {
+  const { code, description, category } = req.body;
+  
+  // Validate input
+  if (!code || !description || !category) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+  
+  // Validate MCC code format (4 digit number)
+  if (!/^\d{4}$/.test(code)) {
+    return res.status(400).json({ error: 'MCC code must be a 4-digit number' });
+  }
+  
+  // Check if MCC already exists
+  if (mccs.some(m => m.code === code)) {
+    return res.status(400).json({ error: 'MCC with this code already exists' });
+  }
+  
+  // Create new MCC
+  const newMcc = {
+    code,
+    description,
+    category
+  };
+  
+  mccs.push(newMcc);
+  res.status(201).json(newMcc);
+});
+
+// Update MCC
+app.put('/api/mccs/:code', (req, res) => {
+  const { description, category } = req.body;
+  const mcc = mccs.find(m => m.code === req.params.code);
+  
+  if (!mcc) {
+    return res.status(404).json({ error: 'MCC not found' });
+  }
+  
+  // Update fields
+  if (description) mcc.description = description;
+  if (category) mcc.category = category;
+  
+  res.json(mcc);
+});
+
+// Delete MCC
+app.delete('/api/mccs/:code', (req, res) => {
+  const index = mccs.findIndex(m => m.code === req.params.code);
+  
+  if (index === -1) {
+    return res.status(404).json({ error: 'MCC not found' });
+  }
+  
+  mccs.splice(index, 1);
+  res.json({ message: 'MCC deleted successfully' });
 });
 
 // Start server

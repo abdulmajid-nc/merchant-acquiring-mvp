@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import Layout from './Layout';
+import React, { useState, useEffect } from 'react';
+import api, { API_ENDPOINTS } from './utils/api';
 
 function AdminPanel() {
   const [successMsg, setSuccessMsg] = useState('');
@@ -8,10 +8,17 @@ function AdminPanel() {
   const [showConfirm, setShowConfirm] = useState({ type: '', id: null });
   const [archived, setArchived] = useState([]);
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/merchants/archived`)
-      .then(res => res.json())
-      .then(data => setArchived(data.archived || []));
+    const fetchArchivedMerchants = async () => {
+      try {
+        const data = await api.get(API_ENDPOINTS.MERCHANTS_ARCHIVED);
+        setArchived(data.archived || []);
+      } catch (error) {
+        console.error('Failed to fetch archived merchants:', error);
+      }
+    };
+    fetchArchivedMerchants();
   }, []);
+  
   const [merchants, setMerchants] = useState([]);
   const [terminals, setTerminals] = useState([]);
   const [selectedMerchant, setSelectedMerchant] = useState(null);
@@ -24,16 +31,22 @@ function AdminPanel() {
   const [bulkResult, setBulkResult] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/merchants`, {
-      headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
-    })
-      .then(res => res.json())
-      .then(data => setMerchants(data.merchants || []));
-    fetch(`${process.env.REACT_APP_API_URL}/api/terminals`, {
-      headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
-    })
-      .then(res => res.json())
-      .then(data => setTerminals(data.terminals || []));
+    const fetchData = async () => {
+      try {
+        // Fetch merchants and terminals in parallel
+        const [merchantsData, terminalsData] = await Promise.all([
+          api.get(API_ENDPOINTS.MERCHANTS),
+          api.get(API_ENDPOINTS.TERMINALS)
+        ]);
+        
+        setMerchants(Array.isArray(merchantsData.merchants) ? merchantsData.merchants : []);
+        setTerminals(Array.isArray(terminalsData.terminals) ? terminalsData.terminals : []);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+    
+    fetchData();
   }, []);
 
   // Helper for feedback
@@ -102,7 +115,6 @@ function AdminPanel() {
   };
 
   return (
-    <Layout>
       <div className="container py-4">
         <h2 className="display-5 fw-bold text-primary text-center mb-4">Admin Panel</h2>
         {/* Merchants Table */}
@@ -123,23 +135,46 @@ function AdminPanel() {
                 </tr>
               </thead>
               <tbody>
-                {merchants.map(m => (
-                  <tr key={m.id || m._id}>
-                    <td>{m.id || m._id}</td>
-                    <td>{m.name}</td>
-                    <td>{m.email}</td>
-                    <td>{m.business_type}</td>
-                    <td>{m.status}</td>
-                    <td>{m.owner}</td>
-                    <td className="text-break small">{(m.locations || []).join(', ')}</td>
-                    <td>
-                      <button onClick={() => setSelectedMerchant(m.id || m._id)} className="btn btn-primary btn-sm me-2">Select</button>
-                      <button onClick={() => handleAccountAction('upgrade')} className="btn btn-success btn-sm me-2">Upgrade</button>
-                      <button onClick={() => handleAccountAction('close')} className="btn btn-danger btn-sm me-2">Close</button>
-                      <button onClick={() => handleAccountAction('archive')} className="btn btn-secondary btn-sm">Archive</button>
-                    </td>
-                  </tr>
-                ))}
+                {(Array.isArray(merchants) ? merchants : []).map(m => {
+                  if (!m || typeof m !== 'object') return null;
+                  const locs = Array.isArray(m.locations) ? m.locations : [];
+                  return (
+                    <tr key={m.id || m._id || Math.random()}>
+                      <td>{m.id || m._id}</td>
+                      <td>{m.name}</td>
+                      <td>
+                        <span title={m.email} className="d-inline-block text-truncate" style={{maxWidth: '120px'}}>
+                          {m.email ? m.email.replace(/(.{2}).+(@.+)/, '$1***$2') : ''}
+                        </span>
+                      </td>
+                      <td>{m.business_type}</td>
+                      <td>
+                        <span className={`badge ${m.status === 'active' ? 'bg-success' : m.status === 'pending' ? 'bg-warning text-dark' : m.status === 'closed' ? 'bg-danger' : 'bg-secondary'}`}
+                          title={m.status ? m.status.charAt(0).toUpperCase() + m.status.slice(1) : ''}>
+                          {m.status ? m.status.charAt(0).toUpperCase() + m.status.slice(1) : ''}
+                        </span>
+                      </td>
+                      <td>
+                        <span title={m.owner} className="d-inline-block text-truncate" style={{maxWidth: '100px'}}>
+                          {m.owner ? m.owner.replace(/(.{2}).+/, '$1***') : ''}
+                        </span>
+                      </td>
+                      <td className="text-break small" title={locs.join(', ')}>
+                        {locs.length > 2
+                          ? `${locs.slice(0,2).join(', ')}...`
+                          : locs.join(', ')}
+                      </td>
+                      <td>
+                        <div className="btn-group" role="group" aria-label="Merchant Actions">
+                          <button onClick={() => setSelectedMerchant(m.id || m._id)} className="btn btn-primary btn-sm" title="Select merchant for actions"><i className="bi bi-pencil-square"></i></button>
+                          <button onClick={() => handleAccountAction('upgrade')} className="btn btn-success btn-sm" title="Upgrade merchant"><i className="bi bi-arrow-up-circle"></i></button>
+                          <button onClick={() => handleAccountAction('close')} className="btn btn-danger btn-sm" title="Close merchant"><i className="bi bi-x-circle"></i></button>
+                          <button onClick={() => handleAccountAction('archive')} className="btn btn-secondary btn-sm" title="Archive merchant"><i className="bi bi-archive"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -170,18 +205,57 @@ function AdminPanel() {
               </tr>
             </thead>
             <tbody>
-              {terminals.map(t => (
-                <tr key={t.id || t._id} className="hover:bg-blue-50">
-                  <td className="py-2 px-4 border-b">{t.id || t._id}</td>
-                  <td className="py-2 px-4 border-b">{t.merchant}</td>
-                  <td className="py-2 px-4 border-b">{t.serial}</td>
-                  <td className="py-2 px-4 border-b">{t.status}</td>
-                  <td className="py-2 px-4 border-b text-xs">{JSON.stringify(t.config)}</td>
-                  <td className="py-2 px-4 border-b">
-                    <button onClick={() => setSelectedTerminal(t.id || t._id)} className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Select</button>
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                // Deduplicate by id/_id and normalize status
+                const seen = new Set();
+                return (Array.isArray(terminals) ? terminals : [])
+                  .map(t => {
+                    // Normalize status to lowercase for deduplication and display
+                    if (t && typeof t === 'object' && t.status) {
+                      t.status = t.status.toLowerCase();
+                    }
+                    return t;
+                  })
+                  .filter(t => {
+                    const key = t && (t.id || t._id);
+                    if (!key || seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                  })
+                  .map(t => {
+                    if (!t || typeof t !== 'object') return null;
+                    const configStr = t.config ? JSON.stringify(t.config) : '';
+                    const status = t.status || '';
+                    let badgeClass = 'bg-secondary', badgeText = '';
+                    if (status === 'active') { badgeClass = 'bg-success'; badgeText = 'Active'; }
+                    else if (status === 'inactive' || status === 'closed') { badgeClass = 'bg-secondary'; badgeText = 'Inactive'; }
+                    else if (status === 'pending') { badgeClass = 'bg-warning text-dark'; badgeText = 'Pending'; }
+                    else { badgeText = t.status; }
+                    return (
+                      <tr key={t.id || t._id || Math.random()} className="hover:bg-blue-50">
+                        <td className="py-2 px-4 border-b">{t.id || t._id}</td>
+                        <td className="py-2 px-4 border-b">{t.merchant}</td>
+                        <td className="py-2 px-4 border-b">
+                          <span title={t.serial} className="d-inline-block text-truncate" style={{maxWidth: '90px'}}>
+                            {t.serial ? t.serial.replace(/(.{2}).+/, '$1***') : ''}
+                          </span>
+                        </td>
+                        <td className="py-2 px-4 border-b">
+                          <span className={`badge ${badgeClass}`}
+                            title={badgeText}>
+                            {badgeText}
+                          </span>
+                        </td>
+                        <td className="py-2 px-4 border-b text-xs" title={configStr}>
+                          {configStr.length > 20 ? configStr.slice(0, 20) + '...' : configStr}
+                        </td>
+                        <td className="py-2 px-4 border-b">
+                          <button onClick={() => setSelectedTerminal(t.id || t._id)} className="btn btn-info btn-sm" title="Select terminal for actions"><i className="bi bi-pencil-square"></i></button>
+                        </td>
+                      </tr>
+                    );
+                  });
+              })()}
             </tbody>
           </table>
         </div>
@@ -232,7 +306,6 @@ function AdminPanel() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 
 }
