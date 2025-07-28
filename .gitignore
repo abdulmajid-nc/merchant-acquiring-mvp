@@ -60,3 +60,4 @@ Thumbs.db
 *.swp
 # Ignore specific files
 # Add any specific files you want to ignore here
+.env.development
