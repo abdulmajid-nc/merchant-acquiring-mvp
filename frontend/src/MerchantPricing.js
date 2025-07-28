@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import api, { API_ENDPOINTS } from './utils/api';
@@ -28,6 +28,9 @@ function MerchantPricing() {
   const [assignedDevices, setAssignedDevices] = useState([]);
   const [softPosId, setSoftPosId] = useState('');
   const [showBulkAssign, setShowBulkAssign] = useState(false);
+  
+  // Tab management
+  const [activeTab, setActiveTab] = useState('pricing'); // 'pricing' or 'devices'
   
   // Currency options
   const currencyOptions = [
@@ -263,15 +266,28 @@ function MerchantPricing() {
 
   return (
     <div className="container py-4">
-      <h2 className="display-5 fw-bold text-primary text-center mb-4">
-        Merchant Pricing & Devices
+      {/* Breadcrumbs */}
+      <nav aria-label="breadcrumb" className="mb-3">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item"><Link to="/merchant-management">Merchants</Link></li>
+          {merchant && (
+            <li className="breadcrumb-item">
+              <Link to={`/merchant-management?id=${id}`}>{merchant.name}</Link>
+            </li>
+          )}
+          <li className="breadcrumb-item active" aria-current="page">Pricing & Devices</li>
+        </ol>
+      </nav>
+      
+      <h2 className="display-5 fw-bold text-primary mb-4">
+        {merchant ? merchant.name : 'Merchant'} <span className="text-secondary fs-4">Pricing & Devices</span>
       </h2>
       
       {/* Merchant Info Card */}
       {merchant && (
         <div className="card mb-4 border-primary">
           <div className="card-header bg-primary text-white">
-            <h3 className="h5 mb-0">{merchant.name}</h3>
+            <h3 className="h5 mb-0">Merchant Details</h3>
           </div>
           <div className="card-body">
             <div className="row">
@@ -307,282 +323,315 @@ function MerchantPricing() {
         </div>
       )}
       
-      <div className="row">
-        {/* Pricing Form */}
-        <div className="col-md-6 mb-4">
-          <div className="card h-100">
-            <div className="card-header bg-light">
-              <h3 className="h5 fw-semibold text-dark mb-0">Pricing Plan</h3>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handlePricingSubmit}>
-                {/* MDR */}
-                <div className="mb-3">
-                  <label htmlFor="mdr" className="form-label">MDR (%)</label>
-                  <div className="input-group">
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      className="form-control" 
-                      id="mdr" 
-                      value={pricing.mdr} 
-                      onChange={(e) => setPricing({...pricing, mdr: e.target.value})}
-                      placeholder="e.g., 2.5" 
-                      required
-                    />
-                    <span className="input-group-text">%</span>
-                  </div>
-                  <small className="text-muted">Merchant Discount Rate percentage</small>
-                </div>
-                
-                {/* Fixed Fee */}
-                <div className="mb-3">
-                  <label htmlFor="fixedFee" className="form-label">Fixed Transaction Fee</label>
-                  <div className="input-group">
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      className="form-control" 
-                      id="fixedFee" 
-                      value={pricing.fixedFee} 
-                      onChange={(e) => setPricing({...pricing, fixedFee: e.target.value})}
-                      placeholder="e.g., 0.30" 
-                      required
-                    />
-                    <span className="input-group-text">AED</span>
-                  </div>
-                  <small className="text-muted">Fixed amount charged per transaction</small>
-                </div>
-                
-                {/* Currencies */}
-                <div className="mb-3">
-                  <label htmlFor="currencies" className="form-label">Supported Currencies</label>
-                  <select 
-                    className="form-select" 
-                    id="currencies" 
-                    multiple 
-                    value={pricing.currencies}
-                    onChange={handleCurrencyChange}
-                    size="5"
-                    required
-                  >
-                    {currencyOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <small className="text-muted">Hold Ctrl/Cmd to select multiple currencies</small>
-                </div>
-                
-                {/* Effective Date */}
-                <div className="mb-4">
-                  <label htmlFor="effectiveDate" className="form-label">Effective Start Date</label>
-                  <DatePicker
-                    selected={pricing.effectiveStartDate}
-                    onChange={(date) => setPricing({...pricing, effectiveStartDate: date})}
-                    className="form-control"
-                    id="effectiveDate"
-                    dateFormat="yyyy-MM-dd"
-                    minDate={new Date()}
-                    required
-                  />
-                  <small className="text-muted">When this pricing plan goes into effect</small>
-                </div>
-                
-                <div className="d-grid">
-                  <button type="submit" className="btn btn-primary">
-                    Update Pricing Plan
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        
-        {/* Device Assignment */}
-        <div className="col-md-6 mb-4">
-          <div className="card h-100">
-            <div className="card-header bg-light d-flex justify-content-between align-items-center">
-              <h3 className="h5 fw-semibold text-dark mb-0">Device Management</h3>
-              <button
-                className="btn btn-sm btn-outline-primary"
-                onClick={() => setShowBulkAssign(!showBulkAssign)}
-              >
-                {showBulkAssign ? 'Hide Assignment' : 'Assign Devices'}
-              </button>
-            </div>
-            <div className="card-body">
-              {/* Bulk Assign Devices Form */}
-              {showBulkAssign && (
-                <div className="mb-4 p-3 border rounded bg-light">
-                  <h4 className="h6 fw-semibold mb-3">Assign Devices</h4>
-                  
-                  {/* SoftPOS ID manual entry */}
+      {/* Tabs Navigation */}
+      <ul className="nav nav-tabs mb-4">
+        <li className="nav-item">
+          <button 
+            className={`nav-link ${activeTab === 'pricing' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pricing')}
+          >
+            <i className="fas fa-dollar-sign me-1"></i>
+            Pricing Plan
+          </button>
+        </li>
+        <li className="nav-item">
+          <button 
+            className={`nav-link ${activeTab === 'devices' ? 'active' : ''}`}
+            onClick={() => setActiveTab('devices')}
+          >
+            <i className="fas fa-mobile-alt me-1"></i>
+            Device Management
+            {assignedDevices.length > 0 && (
+              <span className="badge bg-primary rounded-pill ms-2">
+                {assignedDevices.length}
+              </span>
+            )}
+          </button>
+        </li>
+      </ul>
+      
+      {/* Tab Content */}
+      {activeTab === 'pricing' && (
+        <div className="row">
+          <div className="col-md-8 mx-auto mb-4">
+            <div className="card h-100">
+              <div className="card-header bg-light">
+                <h3 className="h5 fw-semibold text-dark mb-0">Pricing Plan</h3>
+              </div>
+              <div className="card-body">
+                <form onSubmit={handlePricingSubmit}>
+                  {/* MDR */}
                   <div className="mb-3">
-                    <label htmlFor="softPosId" className="form-label">SoftPOS ID (Manual Entry)</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="softPosId"
-                      value={softPosId}
-                      onChange={(e) => setSoftPosId(e.target.value)}
-                      placeholder="Enter SoftPOS ID"
-                    />
-                    <small className="text-muted">Manually enter a SoftPOS ID to assign</small>
+                    <label htmlFor="mdr" className="form-label">MDR (%)</label>
+                    <div className="input-group">
+                      <input 
+                        type="number" 
+                        step="0.01" 
+                        className="form-control" 
+                        id="mdr" 
+                        value={pricing.mdr} 
+                        onChange={(e) => setPricing({...pricing, mdr: e.target.value})}
+                        placeholder="e.g., 2.5" 
+                        required
+                      />
+                      <span className="input-group-text">%</span>
+                    </div>
+                    <small className="text-muted">Merchant Discount Rate percentage</small>
                   </div>
                   
-                  {/* Available POS Terminals */}
+                  {/* Fixed Fee */}
                   <div className="mb-3">
-                    <label className="form-label">Available POS Terminals</label>
-                    {availableDevices.length === 0 ? (
-                      <div className="alert alert-info py-2">
-                        No available terminals found
-                      </div>
-                    ) : (
-                      <div className="table-responsive" style={{maxHeight: '200px', overflowY: 'auto'}}>
-                        <table className="table table-sm table-hover">
-                          <thead className="table-light sticky-top">
-                            <tr>
-                              <th style={{width: '40px'}}></th>
-                              <th>Serial</th>
-                              <th>Model</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {availableDevices.map(device => (
-                              <tr key={device.id || device._id} 
-                                  className={selectedDevices.includes(device.id || device._id) ? 'table-primary' : ''}
-                                  onClick={() => handleDeviceSelection(device.id || device._id)}>
-                                <td>
-                                  <div className="form-check">
-                                    <input
-                                      className="form-check-input"
-                                      type="checkbox"
-                                      id={`device-${device.id || device._id}`}
-                                      checked={selectedDevices.includes(device.id || device._id)}
-                                      onChange={() => handleDeviceSelection(device.id || device._id)}
-                                    />
-                                  </div>
-                                </td>
-                                <td>{device.serial || '—'}</td>
-                                <td>{device.model || 'Unknown'}</td>
-                                <td>
-                                  <span className={`badge bg-${
-                                    device.status === 'active' ? 'success' : 
-                                    device.status === 'pending' ? 'warning text-dark' : 
-                                    'secondary'}`}>
-                                    {device.status ? 
-                                      device.status.charAt(0).toUpperCase() + device.status.slice(1) : 
-                                      'Unknown'}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                    <small className="text-muted">Select multiple devices using checkboxes</small>
+                    <label htmlFor="fixedFee" className="form-label">Fixed Transaction Fee</label>
+                    <div className="input-group">
+                      <input 
+                        type="number" 
+                        step="0.01" 
+                        className="form-control" 
+                        id="fixedFee" 
+                        value={pricing.fixedFee} 
+                        onChange={(e) => setPricing({...pricing, fixedFee: e.target.value})}
+                        placeholder="e.g., 0.30" 
+                        required
+                      />
+                      <span className="input-group-text">AED</span>
+                    </div>
+                    <small className="text-muted">Fixed amount charged per transaction</small>
                   </div>
                   
-                  <div className="d-grid gap-2">
-                    <button 
-                      className="btn btn-primary" 
-                      onClick={handleAssignDevices}
-                      disabled={selectedDevices.length === 0 && !softPosId.trim()}
-                    >
-                      Assign {selectedDevices.length > 0 ? `(${selectedDevices.length})` : ''} {softPosId.trim() ? '+ SoftPOS' : ''}
-                    </button>
-                  </div>
-                </div>
-              )}
-              
-              {/* Quick Assign Device (Legacy support) */}
-              {!showBulkAssign && (
-                <div className="mb-4">
-                  <h4 className="h6 fw-semibold mb-3">Quick Assign Device</h4>
-                  <div className="input-group mb-3">
+                  {/* Currencies */}
+                  <div className="mb-3">
+                    <label htmlFor="currencies" className="form-label">Supported Currencies</label>
                     <select 
-                      className="form-select"
-                      onChange={(e) => e.target.value && handleAssignDevice(e.target.value)}
-                      value=""
+                      className="form-select" 
+                      id="currencies" 
+                      multiple 
+                      value={pricing.currencies}
+                      onChange={handleCurrencyChange}
+                      size="5"
+                      required
                     >
-                      <option value="">Select a device...</option>
-                      {availableDevices.map(device => (
-                        <option key={device.id || device._id} value={device.id || device._id}>
-                          {device.serial || device.id || device._id} - {device.model || 'Unknown Model'}
+                      {currencyOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
                         </option>
                       ))}
                     </select>
+                    <small className="text-muted">Hold Ctrl/Cmd to select multiple currencies</small>
                   </div>
-                  <small className="text-muted">Click "Assign Devices" for multi-select options</small>
-                </div>
-              )}
-              
-              {/* Assigned Devices List */}
-              <div>
-                <h4 className="h6 fw-semibold mb-3">
-                  Assigned Devices
-                  {assignedDevices.length > 0 && 
-                    <span className="badge bg-primary rounded-pill ms-2">{assignedDevices.length}</span>
-                  }
-                </h4>
-                {assignedDevices.length === 0 ? (
-                  <div className="alert alert-info">
-                    No devices assigned to this merchant yet.
+                  
+                  {/* Effective Date */}
+                  <div className="mb-4">
+                    <label htmlFor="effectiveDate" className="form-label">Effective Start Date</label>
+                    <DatePicker
+                      selected={pricing.effectiveStartDate}
+                      onChange={(date) => setPricing({...pricing, effectiveStartDate: date})}
+                      className="form-control"
+                      id="effectiveDate"
+                      dateFormat="yyyy-MM-dd"
+                      minDate={new Date()}
+                      required
+                    />
+                    <small className="text-muted">When this pricing plan goes into effect</small>
                   </div>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table table-sm table-bordered">
-                      <thead className="table-light">
-                        <tr>
-                          <th>Serial/ID</th>
-                          <th>Type</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {assignedDevices.map(device => (
-                          <tr key={device.id || device._id}>
-                            <td>
-                              {device.serial || device.id || device._id}
-                              {device.deviceType === 'softpos' && 
-                                <span className="badge bg-info text-dark ms-2">SoftPOS</span>
-                              }
-                            </td>
-                            <td>{device.model || (device.deviceType === 'softpos' ? 'SoftPOS' : '—')}</td>
-                            <td>
-                              <span className={`badge bg-${
-                                device.status === 'active' ? 'success' : 
-                                device.status === 'pending' ? 'warning text-dark' : 
-                                'secondary'}`}>
-                                {device.status ? 
-                                  device.status.charAt(0).toUpperCase() + device.status.slice(1) : 
-                                  'Unknown'}
-                              </span>
-                            </td>
-                            <td>
-                              <button 
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleRemoveDevice(device.id || device._id)}
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  
+                  <div className="d-grid">
+                    <button type="submit" className="btn btn-primary">
+                      Update Pricing Plan
+                    </button>
                   </div>
-                )}
+                </form>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+      
+      {/* Device Assignment Tab */}
+      {activeTab === 'devices' && (
+        <div className="row">
+          <div className="col-lg-10 mx-auto mb-4">
+            <div className="card h-100">
+              <div className="card-header bg-light d-flex justify-content-between align-items-center">
+                <h3 className="h5 fw-semibold text-dark mb-0">Device Management</h3>
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => setShowBulkAssign(!showBulkAssign)}
+                >
+                  {showBulkAssign ? 'Hide Assignment' : 'Assign Devices'}
+                </button>
+              </div>
+              <div className="card-body">
+                {/* Bulk Assign Devices Form */}
+                {showBulkAssign && (
+                  <div className="mb-4 p-3 border rounded bg-light">
+                    <h4 className="h6 fw-semibold mb-3">Assign Devices</h4>
+                    
+                    {/* SoftPOS ID manual entry */}
+                    <div className="mb-3">
+                      <label htmlFor="softPosId" className="form-label">SoftPOS ID (Manual Entry)</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="softPosId"
+                        value={softPosId}
+                        onChange={(e) => setSoftPosId(e.target.value)}
+                        placeholder="Enter SoftPOS ID"
+                      />
+                      <small className="text-muted">Manually enter a SoftPOS ID to assign</small>
+                    </div>
+                    
+                    {/* Available POS Terminals */}
+                    <div className="mb-3">
+                      <label className="form-label">Available POS Terminals</label>
+                      {availableDevices.length === 0 ? (
+                        <div className="alert alert-info py-2">
+                          No available terminals found
+                        </div>
+                      ) : (
+                        <div className="table-responsive" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                          <table className="table table-sm table-hover">
+                            <thead className="table-light sticky-top">
+                              <tr>
+                                <th style={{width: '40px'}}></th>
+                                <th>Serial</th>
+                                <th>Model</th>
+                                <th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {availableDevices.map(device => (
+                                <tr key={device.id || device._id} 
+                                    className={selectedDevices.includes(device.id || device._id) ? 'table-primary' : ''}
+                                    onClick={() => handleDeviceSelection(device.id || device._id)}>
+                                  <td>
+                                    <div className="form-check">
+                                      <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={`device-${device.id || device._id}`}
+                                        checked={selectedDevices.includes(device.id || device._id)}
+                                        onChange={() => handleDeviceSelection(device.id || device._id)}
+                                      />
+                                    </div>
+                                  </td>
+                                  <td>{device.serial || '—'}</td>
+                                  <td>{device.model || 'Unknown'}</td>
+                                  <td>
+                                    <span className={`badge bg-${
+                                      device.status === 'active' ? 'success' : 
+                                      device.status === 'pending' ? 'warning text-dark' : 
+                                      'secondary'}`}>
+                                      {device.status ? 
+                                        device.status.charAt(0).toUpperCase() + device.status.slice(1) : 
+                                        'Unknown'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                      <small className="text-muted">Select multiple devices using checkboxes</small>
+                    </div>
+                    
+                    <div className="d-grid gap-2">
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={handleAssignDevices}
+                        disabled={selectedDevices.length === 0 && !softPosId.trim()}
+                      >
+                        Assign {selectedDevices.length > 0 ? `(${selectedDevices.length})` : ''} {softPosId.trim() ? '+ SoftPOS' : ''}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Quick Assign Device (Legacy support) */}
+                {!showBulkAssign && (
+                  <div className="mb-4">
+                    <h4 className="h6 fw-semibold mb-3">Quick Assign Device</h4>
+                    <div className="input-group mb-3">
+                      <select 
+                        className="form-select"
+                        onChange={(e) => e.target.value && handleAssignDevice(e.target.value)}
+                        value=""
+                      >
+                        <option value="">Select a device...</option>
+                        {availableDevices.map(device => (
+                          <option key={device.id || device._id} value={device.id || device._id}>
+                            {device.serial || device.id || device._id} - {device.model || 'Unknown Model'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <small className="text-muted">Click "Assign Devices" for multi-select options</small>
+                  </div>
+                )}
+                
+                {/* Assigned Devices List */}
+                <div>
+                  <h4 className="h6 fw-semibold mb-3">
+                    Assigned Devices
+                    {assignedDevices.length > 0 && 
+                      <span className="badge bg-primary rounded-pill ms-2">{assignedDevices.length}</span>
+                    }
+                  </h4>
+                  {assignedDevices.length === 0 ? (
+                    <div className="alert alert-info">
+                      No devices assigned to this merchant yet.
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-sm table-bordered">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Serial/ID</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {assignedDevices.map(device => (
+                            <tr key={device.id || device._id}>
+                              <td>
+                                {device.serial || device.id || device._id}
+                                {device.deviceType === 'softpos' && 
+                                  <span className="badge bg-info text-dark ms-2">SoftPOS</span>
+                                }
+                              </td>
+                              <td>{device.model || (device.deviceType === 'softpos' ? 'SoftPOS' : '—')}</td>
+                              <td>
+                                <span className={`badge bg-${
+                                  device.status === 'active' ? 'success' : 
+                                  device.status === 'pending' ? 'warning text-dark' : 
+                                  'secondary'}`}>
+                                  {device.status ? 
+                                    device.status.charAt(0).toUpperCase() + device.status.slice(1) : 
+                                    'Unknown'}
+                                </span>
+                              </td>
+                              <td>
+                                <button 
+                                  className="btn btn-danger btn-sm"
+                                  onClick={() => handleRemoveDevice(device.id || device._id)}
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

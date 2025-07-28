@@ -39,7 +39,41 @@ module.exports = {
     res.json({ message: 'Terminal terminated.', terminal });
   },
   list: async (req, res) => {
-    const terminals = await Terminal.find();
-    res.json({ terminals });
+    try {
+      // For our MVP with in-memory data
+      // Collect all terminals from merchants
+      const assignedTerminals = global.merchants
+        .filter(m => m.terminals && m.terminals.length)
+        .flatMap(m => m.terminals.map(t => ({
+          ...t,
+          merchant: m.id,
+          merchantName: m.name
+        })));
+      
+      // Get unassigned terminals
+      const unassignedTerminals = global.terminals.map(t => ({...t, merchant: '', merchantName: ''}));
+      
+      // Filter terminals if requested
+      if (req.query.filter === 'available') {
+        // Return only available/unassigned terminals
+        return res.json({ 
+          terminals: unassignedTerminals,
+          total: unassignedTerminals.length,
+          unassigned: unassignedTerminals.length
+        });
+      }
+      
+      // Return all terminals
+      return res.json({ 
+        terminals: [...assignedTerminals, ...unassignedTerminals],
+        total: assignedTerminals.length + unassignedTerminals.length,
+        assigned: assignedTerminals.length,
+        unassigned: unassignedTerminals.length
+      });
+    } catch (error) {
+      // Fallback to database query if global data not available
+      const terminals = await Terminal.find();
+      res.json({ terminals });
+    }
   }
 };
