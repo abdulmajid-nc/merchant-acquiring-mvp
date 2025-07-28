@@ -1,3 +1,2 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* This file is no longer used for Tailwind CSS.
+   Bootstrap CSS is imported directly in index.js */

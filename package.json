@@ -1,5 +1,16 @@
 {
+  "name": "merchant-acquiring-mvp",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "install:frontend-deps": "cd frontend && chmod +x install-deps.sh && ./install-deps.sh",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm test"
+  },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.11"
+    "concurrently": "^8.0.1"
   }
 }
