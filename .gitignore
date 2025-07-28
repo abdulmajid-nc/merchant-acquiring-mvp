@@ -8,9 +8,7 @@ backend/coverage/
 frontend/.jest/
 backend/.jest/
 
-# Ignore environment files at all levels
-*.env
-*.env.*
+
 
 # Ignore test output
 frontend/junit.xml
