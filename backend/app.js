@@ -239,9 +239,11 @@ app.use(cors({
 
 // Import routes
 const merchantPricingRoutes = require('./routes/merchantPricing');
+const transactionsRoutes = require('./routes/transactions');
 
 // Use routes
 app.use('/api', merchantPricingRoutes);
+app.use('/api/transactions', transactionsRoutes);
 
 // Get all merchants
 app.get('/api/merchants', (req, res) => {

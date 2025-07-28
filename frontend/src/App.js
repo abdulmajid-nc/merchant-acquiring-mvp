@@ -11,6 +11,7 @@ import MerchantPricing from './MerchantPricing';
 import TestMerchantList from './TestMerchantList';
 import ApiDebugger from './ApiDebugger';
 import DirectApiTest from './DirectApiTest';
+import Analytics from './Analytics';
 
 import Layout from './Layout';
 
@@ -22,6 +23,10 @@ function StatusWrapper() {
   return <Status />;
 }
 
+function AnalyticsWrapper() {
+  return <Analytics />;
+}
+
 function App() {
   return (
     <Router>
@@ -29,6 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<RegisterWrapper />} />
           <Route path="/status" element={<StatusWrapper />} />
+          <Route path="/analytics" element={<AnalyticsWrapper />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/merchant-management" element={<MerchantManagementWrapper />} />
           <Route path="/admin-panel" element={<AdminPanelWrapper />} />

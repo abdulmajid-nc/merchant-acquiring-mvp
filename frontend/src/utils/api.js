@@ -58,7 +58,9 @@ export const API_ENDPOINTS = {
   MERCHANT_REMOVE_DEVICE: (id) => `/api/merchants/${id}/devices/remove`,
   
   // Transactions
-  TRANSACTIONS: '/api/transactions'
+  TRANSACTIONS: '/api/transactions',
+  TRANSACTION_BY_ID: (id) => `/api/transactions/${id}`,
+  TRANSACTION_STATUS: (id) => `/api/transactions/${id}/status`
 };
 
 // Helper function for making fetch requests with proper error handling

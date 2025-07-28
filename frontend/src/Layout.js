@@ -93,7 +93,7 @@ export default function Layout({ children }) {
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
+            <Link to="/analytics" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
               <AnalyticsIcon /> Analytics
             </Link>
           </li>
