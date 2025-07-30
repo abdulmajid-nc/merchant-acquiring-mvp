@@ -1,175 +1,293 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
-// Icons for sidebar navigation
+// Heroicons (replacing Bootstrap icons)
 const DashboardIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M4 2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2zm2 3h4a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z" />
   </svg>
 );
 
 const TransactionsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
   </svg>
 );
 
 const MerchantIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
   </svg>
 );
 
 const AnalyticsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
   </svg>
 );
 
 const TerminalIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M12.5 0H3.5A1.5 1.5 0 0 0 2 1.5v13A1.5 1.5 0 0 0 3.5 16h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 12.5 0ZM3.5 1h9a.5.5 0 0 1 .5.5V4h-10V1.5a.5.5 0 0 1 .5-.5Zm9 14h-9a.5.5 0 0 1-.5-.5V5h10v9.5a.5.5 0 0 1-.5.5Z"/>
-    <path d="M8 7.992c0-.283-.207-.49-.495-.492-.287-.002-.497.21-.497.493 0 .282.207.49.495.492.287.002.497-.21.497-.493ZM7 10c0-.552.448-1 1-1s1 .448 1 1-.448 1-1 1-1-.448-1-1Z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
   </svg>
 );
 
 const MDREngineIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
   </svg>
 );
 
 const RiskIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-    <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
 const DisputesIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103zM2.25 8.184l3.897 1.67a.5.5 0 0 1 .262.263l1.67 3.897L12.743 3.52 2.25 8.184z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
   </svg>
 );
 
 const SettingsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-    <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
-    <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
 
 export default function Layout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
   return (
-    <div className="d-flex" style={{ minHeight: '100vh', background: '#f8f9fc' }}>
-      {/* Sidebar - Nexus Acquire style */}
-      <nav className="sidebar bg-white border-end" style={{ width: '265px', minHeight: '100vh' }}>
-        <div className="sidebar-header d-flex align-items-center py-3 px-4 border-bottom">
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="#2563EB" className="me-2" viewBox="0 0 16 16">
-            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
-            <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
-          </svg>
-          <span className="h5 mb-0 fw-bold">Nexus Acquire</span>
-          <button className="btn ms-auto p-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-              <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+    <div className="min-h-screen bg-gray-100 pt-0">
+      {/* Notification space - adding extra padding at the top for notifications */}
+      <div className="h-16"></div>
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* Sidebar header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center">
+            <div className="flex items-center justify-center h-10 w-10 rounded-md bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+              <img src="/nymcard-logo.svg" alt="Nymcard Logo" className="h-8 w-8" />
+            </div>
+            <span className="ml-3 text-xl font-bold text-blue-gray-900">Nymcard Acquire</span>
+          </div>
+          {/* Close button (mobile only) */}
+          <button 
+            className="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none" 
+            onClick={() => setSidebarOpen(false)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <ul className="nav flex-column py-2">
-          <li className="nav-item">
-            <Link to="/admin-panel" className="nav-link d-flex align-items-center px-4 py-3 text-dark fw-medium active">
-              <DashboardIcon /> Dashboard
+        
+        {/* Sidebar menu */}
+        <nav className="mt-4 px-3">
+          <div className="space-y-1">
+            <Link 
+              to="/admin-panel" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/admin-panel') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/admin-panel') ? <DashboardIcon /> : <DashboardIcon />}</span>
+              Dashboard
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/status" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <TransactionsIcon /> Transactions
+            
+            <Link 
+              to="/status" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/status') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/status') ? <TransactionsIcon /> : <TransactionsIcon />}</span>
+              Transactions
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/merchant-management" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <MerchantIcon /> Merchants
+            
+            <Link 
+              to="/merchant-management" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/merchant-management') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/merchant-management') ? <MerchantIcon /> : <MerchantIcon />}</span>
+              Merchants
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/analytics" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <AnalyticsIcon /> Analytics
+            
+            <Link 
+              to="/analytics" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/analytics') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/analytics') ? <AnalyticsIcon /> : <AnalyticsIcon />}</span>
+              Analytics
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/terminal-management" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <TerminalIcon /> POS Terminals
+            
+            <Link 
+              to="/terminal-management" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/terminal-management') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/terminal-management') ? <TerminalIcon /> : <TerminalIcon />}</span>
+              POS Terminals
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/mcc-management" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <MDREngineIcon /> MDR Engine
+            
+            <Link 
+              to="/mcc-management" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/mcc-management') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/mcc-management') ? <MDREngineIcon /> : <MDREngineIcon />}</span>
+              MDR Engine
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/direct-test" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <RiskIcon /> Risk & Compliance
+            <Link 
+              to="/direct-test" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/direct-test') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/direct-test') ? <RiskIcon /> : <RiskIcon />}</span>
+              Risk & Compliance
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/debug" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <DisputesIcon /> Disputes
+            
+            <Link 
+              to="/debug" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/debug') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/debug') ? <DisputesIcon /> : <DisputesIcon />}</span>
+              Disputes
             </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/admin" className="nav-link d-flex align-items-center px-4 py-3 text-secondary">
-              <SettingsIcon /> Settings
+            
+            <Link 
+              to="/admin" 
+              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                isActive('/admin') 
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{isActive('/admin') ? <SettingsIcon /> : <SettingsIcon />}</span>
+              Settings
             </Link>
-          </li>
-        </ul>
-        <div className="mt-auto p-4 bg-light bg-opacity-50">
-          <div className="d-flex align-items-center">
-            <div className="small">
-              <div>Support</div>
-              <div className="text-muted small">Need help? Contact our 24/7 support team.</div>
-            </div>
-          </div>
-          <button className="btn btn-outline-secondary btn-sm w-100 mt-2">Get Help</button>
-        </div>
-      </nav>
-      {/* Main Content */}
-      <div className="flex-grow-1 d-flex flex-column">
-        {/* Topbar */}
-        <nav className="navbar navbar-expand navbar-light bg-white py-2 px-4 border-bottom">
-          <div className="input-group" style={{ maxWidth: '400px' }}>
-            <span className="input-group-text bg-white border-end-0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-              </svg>
-            </span>
-            <input type="text" className="form-control border-start-0" placeholder="Search transactions, merchants..." />
-          </div>
-          <div className="ms-auto d-flex align-items-center">
-            <div className="d-flex align-items-center me-3">
-              <span className="me-2 text-success">●</span>
-              <span>System Online</span>
-            </div>
-            <div className="position-relative me-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z"/>
-              </svg>
-              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-                3
-              </span>
-            </div>
-            <div className="d-flex align-items-center">
-              <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                JD
-              </div>
-              <div>
-                <div className="fw-medium">John Doe</div>
-                <div className="text-muted small">Admin</div>
-              </div>
-            </div>
           </div>
         </nav>
-        <main className="flex-grow-1 p-4">
+        
+        {/* Support section */}
+        <div className="mt-auto p-4 border-t border-gray-200">
+          <div className="mb-2">
+            <h5 className="text-sm font-semibold text-gray-700">Support</h5>
+            <p className="text-xs text-gray-500">Need help? Contact our 24/7 support team.</p>
+          </div>
+          <button className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Get Help
+          </button>
+        </div>
+      </aside>
+      
+      {/* Content area */}
+      <div className="lg:pl-64 flex flex-col flex-1">
+        {/* Top navigation */}
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              {/* Left section - Mobile menu button & Search */}
+              <div className="flex items-center">
+                {/* Mobile menu button */}
+                <button 
+                  className="lg:hidden -ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <span className="sr-only">Open sidebar</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                
+                {/* Search */}
+                <div className="ml-4 flex md:ml-6">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input 
+                      type="search" 
+                      placeholder="Search transactions, merchants..." 
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Right section - Status indicator, notifications, profile */}
+              <div className="flex items-center">
+                {/* System status */}
+                <div className="flex items-center px-3">
+                  <div className="flex items-center">
+                    <span className="h-2.5 w-2.5 bg-green-400 rounded-full mr-2"></span>
+                    <span className="text-sm text-gray-600">System Online</span>
+                  </div>
+                </div>
+                
+                {/* Notification bell */}
+                <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 relative">
+                  <span className="sr-only">View notifications</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-xs text-white text-center">3</span>
+                </button>
+                
+                {/* Profile dropdown */}
+                <div className="ml-3 relative">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+                      JD
+                    </div>
+                    <div className="ml-2 hidden md:block">
+                      <div className="text-sm font-medium text-gray-800">John Doe</div>
+                      <div className="text-xs text-gray-500">Admin</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

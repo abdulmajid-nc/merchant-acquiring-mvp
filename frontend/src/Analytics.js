@@ -64,11 +64,24 @@ function Analytics() {
         // with date range filters
         const response = await api.get(API_ENDPOINTS.TRANSACTIONS);
         
-        if (response && response.transactions) {
-          setTransactions(response.transactions);
-          calculateMetrics(response.transactions);
+        // Handle different response formats
+        let transactionsData = [];
+        
+        if (Array.isArray(response)) {
+          // Direct array response
+          transactionsData = response;
+        } else if (response && response.transactions && Array.isArray(response.transactions)) {
+          // Response with transactions property containing array
+          transactionsData = response.transactions;
         } else {
-          // Use mock data if API doesn't return expected format
+          console.warn('Unexpected response format for transactions:', response);
+        }
+        
+        if (transactionsData.length > 0) {
+          setTransactions(transactionsData);
+          calculateMetrics(transactionsData);
+        } else {
+          // Use mock data if no transactions are available
           setTransactions([]);
           // Keep the placeholder metrics
         }

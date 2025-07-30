@@ -40,7 +40,19 @@ module.exports = {
   },
   list: async (req, res) => {
     try {
-      // For our MVP with in-memory data
+      // Check if we're connected to the database
+      if (global.dbConnected) {
+        console.log('Using MongoDB for terminals list');
+        const terminals = await Terminal.find();
+        return res.json({ 
+          terminals, 
+          total: terminals.length,
+          source: 'database'
+        });
+      }
+      
+      // Using in-memory data
+      console.log('Using mock data for terminals list');
       // Collect all terminals from merchants
       const assignedTerminals = global.merchants
         .filter(m => m.terminals && m.terminals.length)
@@ -59,7 +71,8 @@ module.exports = {
         return res.json({ 
           terminals: unassignedTerminals,
           total: unassignedTerminals.length,
-          unassigned: unassignedTerminals.length
+          unassigned: unassignedTerminals.length,
+          source: 'mock'
         });
       }
       
@@ -68,12 +81,41 @@ module.exports = {
         terminals: [...assignedTerminals, ...unassignedTerminals],
         total: assignedTerminals.length + unassignedTerminals.length,
         assigned: assignedTerminals.length,
-        unassigned: unassignedTerminals.length
+        unassigned: unassignedTerminals.length,
+        source: 'mock'
       });
     } catch (error) {
-      // Fallback to database query if global data not available
-      const terminals = await Terminal.find();
-      res.json({ terminals });
+      console.error('Error fetching terminals:', error);
+      // Return mock data even on error
+      console.log('Error occurred, using mock data for terminals list');
+      
+      try {
+        const assignedTerminals = global.merchants
+          .filter(m => m.terminals && m.terminals.length)
+          .flatMap(m => m.terminals.map(t => ({
+            ...t,
+            merchant: m.id,
+            merchantName: m.name
+          })));
+        
+        const unassignedTerminals = global.terminals.map(t => ({...t, merchant: '', merchantName: ''}));
+        
+        return res.json({ 
+          terminals: [...assignedTerminals, ...unassignedTerminals],
+          total: assignedTerminals.length + unassignedTerminals.length,
+          assigned: assignedTerminals.length,
+          unassigned: unassignedTerminals.length,
+          source: 'mock',
+          error: error.message
+        });
+      } catch (fallbackError) {
+        // If even the mock data fails
+        return res.status(500).json({ 
+          message: 'Failed to fetch terminals',
+          error: error.message,
+          fallbackError: fallbackError.message
+        });
+      }
     }
   }
 };

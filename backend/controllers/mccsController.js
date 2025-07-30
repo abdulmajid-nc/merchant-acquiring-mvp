@@ -3,10 +3,47 @@ const Mcc = require('../models/Mcc');
 // Get all MCCs
 exports.getAllMccs = async (req, res) => {
   try {
-    const mccs = await Mcc.find().sort({ code: 1 });
-    res.status(200).json(mccs);
+    // Check if we're connected to the database
+    if (global.dbConnected) {
+      console.log('Using MongoDB for MCCs list');
+      const mccs = await Mcc.find().sort({ code: 1 });
+      return res.status(200).json({
+        mccs,
+        total: mccs.length,
+        source: 'database'
+      });
+    }
+    
+    // If not connected to MongoDB, use mock data
+    console.log('Using mock data for MCCs list');
+    
+    // Make sure global.mccs exists
+    if (!global.mccs) {
+      global.mccs = [
+        { code: '5411', description: 'Grocery Stores, Supermarkets', category: 'Food & Beverage', risk_level: 'low' },
+        { code: '5812', description: 'Eating Places, Restaurants', category: 'Food & Beverage', risk_level: 'medium' },
+        { code: '5999', description: 'Miscellaneous and Specialty Retail Stores', category: 'Retail', risk_level: 'medium' }
+      ];
+    }
+    
+    return res.status(200).json({
+      mccs: global.mccs,
+      total: global.mccs.length,
+      source: 'mock'
+    });
   } catch (error) {
     console.error('Error fetching MCCs:', error);
+    
+    // If there's an error, provide mock data for development
+    if (global.mccs) {
+      return res.status(200).json({
+        mccs: global.mccs,
+        total: global.mccs.length,
+        source: 'mock',
+        error: error.message
+      });
+    }
+    
     res.status(500).json({ message: 'Error fetching MCCs', error: error.message });
   }
 };
@@ -14,15 +51,58 @@ exports.getAllMccs = async (req, res) => {
 // Get MCC by code
 exports.getMccByCode = async (req, res) => {
   try {
-    const mcc = await Mcc.findOne({ code: req.params.code });
-    
-    if (!mcc) {
-      return res.status(404).json({ message: 'MCC not found' });
+    // Check if we're connected to the database
+    if (global.dbConnected) {
+      console.log('Using MongoDB for MCC lookup');
+      const mcc = await Mcc.findOne({ code: req.params.code });
+      
+      if (!mcc) {
+        return res.status(404).json({ message: 'MCC not found', source: 'database' });
+      }
+      
+      return res.status(200).json({
+        mcc,
+        source: 'database'
+      });
     }
     
-    res.status(200).json(mcc);
+    // If not connected to MongoDB, use mock data
+    console.log('Using mock data for MCC lookup');
+    
+    // Make sure global.mccs exists
+    if (!global.mccs) {
+      global.mccs = [
+        { code: '5411', description: 'Grocery Stores, Supermarkets', risk_level: 'low' },
+        { code: '5812', description: 'Eating Places, Restaurants', risk_level: 'medium' },
+        { code: '5999', description: 'Miscellaneous and Specialty Retail Stores', risk_level: 'medium' }
+      ];
+    }
+    
+    const mockMcc = global.mccs.find(m => m.code === req.params.code);
+    
+    if (!mockMcc) {
+      return res.status(404).json({ message: 'MCC not found', source: 'mock' });
+    }
+    
+    return res.status(200).json({
+      mcc: mockMcc,
+      source: 'mock'
+    });
   } catch (error) {
     console.error('Error fetching MCC:', error);
+    
+    // If there's an error, try to provide mock data
+    if (global.mccs) {
+      const mockMcc = global.mccs.find(m => m.code === req.params.code);
+      if (mockMcc) {
+        return res.status(200).json({
+          mcc: mockMcc,
+          source: 'mock',
+          error: error.message
+        });
+      }
+    }
+    
     res.status(500).json({ message: 'Error fetching MCC', error: error.message });
   }
 };

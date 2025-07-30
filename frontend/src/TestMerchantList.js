@@ -49,47 +49,49 @@ function TestMerchantList() {
   }
   
   return (
-    <div className="container py-4">
-      <h2>Merchant List Test</h2>
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-2xl font-bold mb-6">Merchant List Test</h2>
       
-      <div className="card">
-        <div className="card-body">
-          <h3 className="card-title">All Merchants</h3>
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">All Merchants</h3>
           
           {Array.isArray(merchants) && merchants.length > 0 ? (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Type</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {merchants.map(m => (
-                  <tr key={m.id}>
-                    <td>{m.id}</td>
-                    <td>{m.name}</td>
-                    <td>{m.email}</td>
-                    <td>{m.business_type}</td>
-                    <td>
-                      <Link to={`/merchant/${m.id}/pricing`} className="btn btn-primary btn-sm">
-                        Pricing
-                      </Link>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {merchants.map(m => (
+                    <tr key={m.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{m.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{m.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{m.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{m.business_type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Link to={`/merchant/${m.id}/pricing`} className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                          Pricing
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <p>No merchants found.</p>
+            <p className="text-gray-500">No merchants found.</p>
           )}
           
-          <div className="mt-3">
-            <h4>Raw Data:</h4>
-            <pre>{JSON.stringify(merchants, null, 2)}</pre>
+          <div className="mt-6">
+            <h4 className="text-base font-medium mb-2">Raw Data:</h4>
+            <pre className="p-4 bg-gray-50 rounded-md text-sm overflow-x-auto">{JSON.stringify(merchants, null, 2)}</pre>
           </div>
         </div>
       </div>

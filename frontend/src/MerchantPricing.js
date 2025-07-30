@@ -252,58 +252,130 @@ function MerchantPricing() {
     setTimeout(() => setNotification({ type: '', message: '' }), 5000);
   };
 
+  // Notification style mapper for Argon Dashboard
+  const getNotificationStyle = type => {
+    switch(type) {
+      case 'success':
+        return {
+          bgClass: 'bg-gradient-to-tl from-emerald-500 to-teal-400',
+          iconClass: 'ni ni-check-bold'
+        };
+      case 'danger':
+        return {
+          bgClass: 'bg-gradient-to-tl from-red-500 to-red-400',
+          iconClass: 'ni ni-notification-70'
+        };
+      case 'info':
+        return {
+          bgClass: 'bg-gradient-to-tl from-blue-500 to-violet-500',
+          iconClass: 'ni ni-bell-55'
+        };
+      default:
+        return {
+          bgClass: 'bg-white',
+          iconClass: 'ni ni-bell-55'
+        };
+    }
+  };
+
   if (loading) {
     return (
-      <div className="container py-4">
-        <div className="d-flex justify-content-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="relative flex flex-col min-w-0 break-words bg-white mb-6 shadow-soft-xl rounded-2xl bg-clip-border p-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <svg className="animate-spin h-12 w-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="url(#gradient)" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="url(#gradient)" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#3B82F6' }} />
+                <stop offset="100%" style={{ stopColor: '#8B5CF6' }} />
+              </linearGradient>
+            </defs>
           </div>
+          <h6 className="mb-2 text-xl font-bold">Loading pricing data...</h6>
+          <p className="mb-0 text-sm text-slate-500">Please wait while we retrieve merchant information.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container py-4">
+    <div className="mx-auto px-6 py-6">
       {/* Breadcrumbs */}
-      <nav aria-label="breadcrumb" className="mb-3">
-        <ol className="breadcrumb">
-          <li className="breadcrumb-item"><Link to="/merchant-management">Merchants</Link></li>
+      <nav className="flex mb-5" aria-label="breadcrumb">
+        <ol className="flex items-center space-x-2">
+          <li>
+            <Link to="/merchant-management" className="text-sm font-normal leading-normal text-slate-700 hover:text-slate-900">
+              <i className="ni ni-shop mr-2"></i>
+              Merchants
+            </Link>
+          </li>
           {merchant && (
-            <li className="breadcrumb-item">
-              <Link to={`/merchant-management?id=${id}`}>{merchant.name}</Link>
+            <li>
+              <div className="flex items-center text-sm">
+                <i className="ni ni-bold-right text-slate-400 mx-2 text-xs"></i>
+                <Link to={`/merchant-management?id=${id}`} className="font-normal leading-normal text-slate-700 hover:text-slate-900">{merchant.name}</Link>
+              </div>
             </li>
           )}
-          <li className="breadcrumb-item active" aria-current="page">Pricing & Devices</li>
+          <li>
+            <div className="flex items-center text-sm">
+              <i className="ni ni-bold-right text-slate-400 mx-2 text-xs"></i>
+              <span className="font-normal leading-normal text-slate-500">Pricing & Devices</span>
+            </div>
+          </li>
         </ol>
       </nav>
       
-      <h2 className="display-5 fw-bold text-primary mb-4">
-        {merchant ? merchant.name : 'Merchant'} <span className="text-secondary fs-4">Pricing & Devices</span>
+      <h2 className="text-2xl font-bold mb-4">
+        <span className="bg-gradient-to-tl from-blue-600 to-violet-600 bg-clip-text text-transparent">{merchant ? merchant.name : 'Merchant'}</span>
+        <span className="text-slate-500 text-lg ml-2">Pricing & Devices</span>
       </h2>
       
       {/* Merchant Info Card */}
       {merchant && (
-        <div className="card mb-4 border-primary">
-          <div className="card-header bg-primary text-white">
-            <h3 className="h5 mb-0">Merchant Details</h3>
+        <div className="relative flex flex-col min-w-0 break-words bg-white shadow-soft-xl rounded-2xl bg-clip-border mb-6">
+          <div className="bg-gradient-to-tl from-blue-600 to-violet-600 text-white p-4 rounded-t-2xl">
+            <h3 className="text-lg font-bold mb-0 flex items-center">
+              <i className="ni ni-single-02 mr-2"></i> Merchant Details
+            </h3>
           </div>
-          <div className="card-body">
-            <div className="row">
-              <div className="col-md-4">
-                <p className="mb-1"><strong>Email:</strong> {merchant.email}</p>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center">
+                <div className="rounded-xl p-3 bg-gradient-to-tl from-gray-200 to-gray-100 mr-3">
+                  <i className="ni ni-email-83 text-slate-700"></i>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Email</p>
+                  <p className="text-sm font-semibold">{merchant.email}</p>
+                </div>
               </div>
-              <div className="col-md-4">
-                <p className="mb-1"><strong>Type:</strong> {merchant.business_type}</p>
+              <div className="flex items-center">
+                <div className="rounded-xl p-3 bg-gradient-to-tl from-gray-200 to-gray-100 mr-3">
+                  <i className="ni ni-building text-slate-700"></i>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Type</p>
+                  <p className="text-sm font-semibold">{merchant.business_type}</p>
+                </div>
               </div>
-              <div className="col-md-4">
-                <p className="mb-1"><strong>Status:</strong> 
-                  <span className={`ms-2 badge bg-${merchant.status === 'active' ? 'success' : 
-                    merchant.status === 'suspended' ? 'warning text-dark' : 'danger'}`}>
+              <div className="flex items-center">
+                <div className="rounded-xl p-3 bg-gradient-to-tl from-gray-200 to-gray-100 mr-3">
+                  <i className="ni ni-tag text-slate-700"></i>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Status</p>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium shadow-sm ${
+                    merchant.status === 'active' ? 'bg-gradient-to-tl from-emerald-500 to-teal-400 text-white' : 
+                    merchant.status === 'suspended' ? 'bg-gradient-to-tl from-yellow-500 to-yellow-400 text-white' : 
+                    'bg-gradient-to-tl from-red-500 to-red-400 text-white'
+                  }`}>
                     {merchant.status ? merchant.status.charAt(0).toUpperCase() + merchant.status.slice(1) : 'Unknown'}
                   </span>
-                </p>
+                </div>
               </div>
             </div>
           </div>
@@ -312,97 +384,120 @@ function MerchantPricing() {
       
       {/* Notification Alert */}
       {notification.message && (
-        <div className={`alert alert-${notification.type} alert-dismissible fade show`} role="alert">
-          {notification.message}
+        <div className={`flex items-center p-4 mb-6 rounded-lg shadow-sm ${getNotificationStyle(notification.type).bgClass}`} role="alert">
+          <div className="mr-3">
+            <i className={`${getNotificationStyle(notification.type).iconClass} text-white`}></i>
+          </div>
+          <div className="text-white font-medium">{notification.message}</div>
           <button 
             type="button" 
-            className="btn-close" 
+            className="ml-auto text-white opacity-70 hover:opacity-100" 
             onClick={() => setNotification({ type: '', message: '' })}
-            aria-label="Close">
+            aria-label="Close"
+          >
+            <i className="ni ni-fat-remove"></i>
           </button>
         </div>
       )}
       
       {/* Tabs Navigation */}
-      <ul className="nav nav-tabs mb-4">
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'pricing' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pricing')}
-          >
-            <i className="fas fa-dollar-sign me-1"></i>
-            Pricing Plan
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'devices' ? 'active' : ''}`}
-            onClick={() => setActiveTab('devices')}
-          >
-            <i className="fas fa-mobile-alt me-1"></i>
-            Device Management
-            {assignedDevices.length > 0 && (
-              <span className="badge bg-primary rounded-pill ms-2">
-                {assignedDevices.length}
-              </span>
-            )}
-          </button>
-        </li>
-      </ul>
+      <div className="mb-6">
+        <div className="border-0 border-b-2 border-gray-100 mb-4">
+          <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+            <li className="mr-6" role="presentation">
+              <button 
+                className={`inline-flex items-center px-4 py-3 rounded-t-lg border-b-2 ${
+                  activeTab === 'pricing' 
+                    ? 'text-blue-600 border-blue-600 active font-bold' 
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveTab('pricing')}
+              >
+                <i className="ni ni-money-coins mr-2 text-lg"></i> Pricing Plan
+              </button>
+            </li>
+            <li className="mr-6" role="presentation">
+              <button 
+                className={`inline-flex items-center px-4 py-3 rounded-t-lg border-b-2 ${
+                  activeTab === 'devices' 
+                    ? 'text-blue-600 border-blue-600 active font-bold' 
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveTab('devices')}
+              >
+                <i className="ni ni-laptop mr-2 text-lg"></i> 
+                Device Management
+                {assignedDevices.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-tl from-blue-500 to-violet-500 text-white">
+                    {assignedDevices.length}
+                  </span>
+                )}
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
       
       {/* Tab Content */}
       {activeTab === 'pricing' && (
-        <div className="row">
-          <div className="col-md-8 mx-auto mb-4">
-            <div className="card h-100">
-              <div className="card-header bg-light">
-                <h3 className="h5 fw-semibold text-dark mb-0">Pricing Plan</h3>
+        <div className="grid grid-cols-1">
+          <div className="max-w-3xl mx-auto w-full mb-6">
+            <div className="relative flex flex-col min-w-0 break-words bg-white mb-6 shadow-soft-xl rounded-2xl bg-clip-border">
+              <div className="p-6 pb-0 mb-0 bg-white rounded-t-2xl">
+                <h6 className="mb-1 text-xl font-bold">Pricing Plan</h6>
               </div>
-              <div className="card-body">
+              <div className="flex-auto p-6">
                 <form onSubmit={handlePricingSubmit}>
                   {/* MDR */}
-                  <div className="mb-3">
-                    <label htmlFor="mdr" className="form-label">MDR (%)</label>
-                    <div className="input-group">
+                  <div className="mb-4">
+                    <label htmlFor="mdr" className="block mb-2 text-xs font-bold text-slate-700">MDR (%)</label>
+                    <div className="relative">
                       <input 
                         type="number" 
                         step="0.01" 
-                        className="form-control" 
+                        className="focus:shadow-primary-outline text-sm leading-5.6 ease appearance-none block w-full h-10 rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" 
                         id="mdr" 
                         value={pricing.mdr} 
                         onChange={(e) => setPricing({...pricing, mdr: e.target.value})}
                         placeholder="e.g., 2.5" 
                         required
                       />
-                      <span className="input-group-text">%</span>
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
                     </div>
-                    <small className="text-muted">Merchant Discount Rate percentage</small>
+                    <p className="mt-1 text-xs text-slate-500">Merchant Discount Rate percentage</p>
                   </div>
                   
                   {/* Fixed Fee */}
-                  <div className="mb-3">
-                    <label htmlFor="fixedFee" className="form-label">Fixed Transaction Fee</label>
-                    <div className="input-group">
+                  <div className="mb-4">
+                    <label htmlFor="fixedFee" className="block mb-2 text-xs font-bold text-slate-700">Fixed Transaction Fee</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 text-sm">$</span>
+                      </div>
                       <input 
                         type="number" 
                         step="0.01" 
-                        className="form-control" 
+                        className="focus:shadow-primary-outline text-sm leading-5.6 ease appearance-none block w-full h-10 rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding pl-7 pr-12 px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" 
                         id="fixedFee" 
                         value={pricing.fixedFee} 
                         onChange={(e) => setPricing({...pricing, fixedFee: e.target.value})}
                         placeholder="e.g., 0.30" 
                         required
                       />
-                      <span className="input-group-text">AED</span>
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 text-sm">AED</span>
+                      </div>
                     </div>
-                    <small className="text-muted">Fixed amount charged per transaction</small>
+                    <p className="mt-1 text-xs text-slate-500">Fixed amount charged per transaction</p>
                   </div>
                   
                   {/* Currencies */}
-                  <div className="mb-3">
-                    <label htmlFor="currencies" className="form-label">Supported Currencies</label>
+                  <div className="mb-4">
+                    <label htmlFor="currencies" className="block mb-2 text-xs font-bold text-slate-700">Supported Currencies</label>
                     <select 
-                      className="form-select" 
+                      className="focus:shadow-primary-outline text-sm leading-5.6 ease appearance-none block w-full rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" 
                       id="currencies" 
                       multiple 
                       value={pricing.currencies}
@@ -416,26 +511,33 @@ function MerchantPricing() {
                         </option>
                       ))}
                     </select>
-                    <small className="text-muted">Hold Ctrl/Cmd to select multiple currencies</small>
+                    <p className="mt-1 text-xs text-slate-500">Hold Ctrl/Cmd to select multiple currencies</p>
                   </div>
                   
                   {/* Effective Date */}
+                                    {/* Effective Date */}
                   <div className="mb-4">
-                    <label htmlFor="effectiveDate" className="form-label">Effective Start Date</label>
+                    <label htmlFor="effectiveDate" className="block mb-2 text-xs font-bold text-slate-700">Effective Start Date</label>
                     <DatePicker
                       selected={pricing.effectiveStartDate}
                       onChange={(date) => setPricing({...pricing, effectiveStartDate: date})}
-                      className="form-control"
+                      className="focus:shadow-primary-outline text-sm leading-5.6 ease appearance-none block w-full h-10 rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"
                       id="effectiveDate"
                       dateFormat="yyyy-MM-dd"
                       minDate={new Date()}
                       required
                     />
-                    <small className="text-muted">When this pricing plan goes into effect</small>
+                    <p className="mt-1 text-xs text-slate-500">When this pricing plan goes into effect</p>
                   </div>
                   
-                  <div className="d-grid">
-                    <button type="submit" className="btn btn-primary">
+                  <div className="mt-5">
+                    <button type="submit" className="inline-block px-8 py-2 w-full text-sm font-bold leading-normal text-center text-white capitalize bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg shadow-md hover:shadow-lg transition-all ease-in">
+                      Save Pricing Plan
+                    </button>
+                  </div>
+                  
+                  <div className="mt-5">
+                    <button type="submit" className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                       Update Pricing Plan
                     </button>
                   </div>
@@ -448,65 +550,67 @@ function MerchantPricing() {
       
       {/* Device Assignment Tab */}
       {activeTab === 'devices' && (
-        <div className="row">
-          <div className="col-lg-10 mx-auto mb-4">
-            <div className="card h-100">
-              <div className="card-header bg-light d-flex justify-content-between align-items-center">
-                <h3 className="h5 fw-semibold text-dark mb-0">Device Management</h3>
+        <div className="flex flex-col">
+          <div className="max-w-4xl mx-auto w-full mb-4">
+            <div className="relative flex flex-col min-w-0 break-words bg-white mb-6 shadow-soft-xl rounded-2xl bg-clip-border">
+              <div className="p-4 pb-0 mb-0 bg-white rounded-t-2xl flex justify-between items-center border-b border-gray-100">
+                <h6 className="mb-2 text-xl font-bold">Device Management</h6>
                 <button
-                  className="btn btn-sm btn-outline-primary"
+                  className="inline-block px-4 py-2 mb-0 text-xs font-bold text-center uppercase align-middle transition-all bg-transparent border border-blue-500 rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:shadow-soft-md hover:bg-blue-50 active:opacity-85 tracking-tight-soft text-blue-500"
                   onClick={() => setShowBulkAssign(!showBulkAssign)}
                 >
                   {showBulkAssign ? 'Hide Assignment' : 'Assign Devices'}
                 </button>
               </div>
-              <div className="card-body">
+              <div className="flex-auto p-4">
                 {/* Bulk Assign Devices Form */}
                 {showBulkAssign && (
-                  <div className="mb-4 p-3 border rounded bg-light">
-                    <h4 className="h6 fw-semibold mb-3">Assign Devices</h4>
+                  <div className="mb-4 p-4 border border-gray-200 rounded-xl bg-gray-50">
+                    <h4 className="text-base font-bold mb-3">Assign Devices</h4>
                     
                     {/* SoftPOS ID manual entry */}
-                    <div className="mb-3">
-                      <label htmlFor="softPosId" className="form-label">SoftPOS ID (Manual Entry)</label>
+                    <div className="mb-4">
+                      <label htmlFor="softPosId" className="block mb-2 text-xs font-bold text-slate-700">SoftPOS ID (Manual Entry)</label>
                       <input
                         type="text"
-                        className="form-control"
+                        className="focus:shadow-primary-outline text-sm leading-5.6 ease appearance-none block w-full h-10 rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"
                         id="softPosId"
                         value={softPosId}
                         onChange={(e) => setSoftPosId(e.target.value)}
                         placeholder="Enter SoftPOS ID"
                       />
-                      <small className="text-muted">Manually enter a SoftPOS ID to assign</small>
+                      <p className="mt-1 text-xs text-slate-500">Manually enter a SoftPOS ID to assign</p>
                     </div>
                     
                     {/* Available POS Terminals */}
-                    <div className="mb-3">
-                      <label className="form-label">Available POS Terminals</label>
+                    <div className="mb-4">
+                      <label className="block mb-2 text-xs font-bold text-slate-700">Available POS Terminals</label>
                       {availableDevices.length === 0 ? (
-                        <div className="alert alert-info py-2">
-                          No available terminals found
+                        <div className="rounded-lg bg-blue-50/50 p-3">
+                          <div className="text-sm text-blue-700">
+                            No available terminals found
+                          </div>
                         </div>
                       ) : (
-                        <div className="table-responsive" style={{maxHeight: '200px', overflowY: 'auto'}}>
-                          <table className="table table-sm table-hover">
-                            <thead className="table-light sticky-top">
+                        <div className="overflow-auto rounded-lg border border-gray-100" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50 sticky top-0">
                               <tr>
-                                <th style={{width: '40px'}}></th>
-                                <th>Serial</th>
-                                <th>Model</th>
-                                <th>Status</th>
+                                <th className="w-10 px-3 py-2"></th>
+                                <th className="px-3 py-2 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Serial</th>
+                                <th className="px-3 py-2 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Model</th>
+                                <th className="px-3 py-2 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Status</th>
                               </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="bg-white divide-y divide-gray-200">
                               {availableDevices.map(device => (
                                 <tr key={device.id || device._id} 
-                                    className={selectedDevices.includes(device.id || device._id) ? 'table-primary' : ''}
+                                    className={selectedDevices.includes(device.id || device._id) ? 'bg-blue-50' : 'hover:bg-gray-50'}
                                     onClick={() => handleDeviceSelection(device.id || device._id)}>
-                                  <td>
-                                    <div className="form-check">
+                                  <td className="px-3 py-2">
+                                    <div className="flex items-center">
                                       <input
-                                        className="form-check-input"
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                         type="checkbox"
                                         id={`device-${device.id || device._id}`}
                                         checked={selectedDevices.includes(device.id || device._id)}
@@ -514,13 +618,13 @@ function MerchantPricing() {
                                       />
                                     </div>
                                   </td>
-                                  <td>{device.serial || '—'}</td>
-                                  <td>{device.model || 'Unknown'}</td>
-                                  <td>
-                                    <span className={`badge bg-${
-                                      device.status === 'active' ? 'success' : 
-                                      device.status === 'pending' ? 'warning text-dark' : 
-                                      'secondary'}`}>
+                                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-700">{device.serial || '—'}</td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-sm text-slate-700">{device.model || 'Unknown'}</td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-lg ${
+                                      device.status === 'active' ? 'bg-gradient-to-tl from-green-500 to-teal-400 text-white' : 
+                                      device.status === 'pending' ? 'bg-gradient-to-tl from-yellow-400 to-orange-500 text-white' : 
+                                      'bg-gray-100 text-gray-800'}`}>
                                       {device.status ? 
                                         device.status.charAt(0).toUpperCase() + device.status.slice(1) : 
                                         'Unknown'}
@@ -532,12 +636,12 @@ function MerchantPricing() {
                           </table>
                         </div>
                       )}
-                      <small className="text-muted">Select multiple devices using checkboxes</small>
+                      <p className="mt-1 text-xs text-slate-500">Select multiple devices using checkboxes</p>
                     </div>
                     
-                    <div className="d-grid gap-2">
+                    <div className="mt-4">
                       <button 
-                        className="btn btn-primary" 
+                        className="inline-block px-8 py-2 w-full text-sm font-bold leading-normal text-center text-white capitalize bg-gradient-to-tl from-blue-500 to-violet-500 rounded-lg shadow-md hover:shadow-lg transition-all ease-in disabled:opacity-50"
                         onClick={handleAssignDevices}
                         disabled={selectedDevices.length === 0 && !softPosId.trim()}
                       >
@@ -550,10 +654,10 @@ function MerchantPricing() {
                 {/* Quick Assign Device (Legacy support) */}
                 {!showBulkAssign && (
                   <div className="mb-4">
-                    <h4 className="h6 fw-semibold mb-3">Quick Assign Device</h4>
-                    <div className="input-group mb-3">
+                    <h4 className="text-base font-bold mb-3">Quick Assign Device</h4>
+                    <div className="mb-3">
                       <select 
-                        className="form-select"
+                        className="focus:shadow-primary-outline text-sm leading-5.6 ease appearance-none block w-full rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"
                         onChange={(e) => e.target.value && handleAssignDevice(e.target.value)}
                         value=""
                       >
@@ -565,56 +669,58 @@ function MerchantPricing() {
                         ))}
                       </select>
                     </div>
-                    <small className="text-muted">Click "Assign Devices" for multi-select options</small>
+                    <p className="mt-1 text-xs text-slate-500">Click "Assign Devices" for multi-select options</p>
                   </div>
                 )}
                 
                 {/* Assigned Devices List */}
-                <div>
-                  <h4 className="h6 fw-semibold mb-3">
+                <div className="mt-6">
+                  <h4 className="text-base font-bold mb-3 flex items-center">
                     Assigned Devices
                     {assignedDevices.length > 0 && 
-                      <span className="badge bg-primary rounded-pill ms-2">{assignedDevices.length}</span>
+                      <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-tl from-blue-500 to-violet-500 text-white">{assignedDevices.length}</span>
                     }
                   </h4>
                   {assignedDevices.length === 0 ? (
-                    <div className="alert alert-info">
-                      No devices assigned to this merchant yet.
+                    <div className="rounded-lg bg-blue-50/50 p-4">
+                      <div className="text-sm text-blue-700">
+                        No devices assigned to this merchant yet.
+                      </div>
                     </div>
                   ) : (
-                    <div className="table-responsive">
-                      <table className="table table-sm table-bordered">
-                        <thead className="table-light">
+                    <div className="overflow-x-auto border border-gray-100 rounded-xl shadow-soft-sm">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
                           <tr>
-                            <th>Serial/ID</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th scope="col" className="px-4 py-3 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Serial/ID</th>
+                            <th scope="col" className="px-4 py-3 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" className="px-4 py-3 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" className="px-4 py-3 text-left text-xxs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-white divide-y divide-gray-200">
                           {assignedDevices.map(device => (
                             <tr key={device.id || device._id}>
-                              <td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">
                                 {device.serial || device.id || device._id}
                                 {device.deviceType === 'softpos' && 
-                                  <span className="badge bg-info text-dark ms-2">SoftPOS</span>
+                                  <span className="ml-2 px-2 py-0.5 rounded-lg text-xs font-medium bg-gradient-to-tl from-cyan-400 to-blue-500 text-white">SoftPOS</span>
                                 }
                               </td>
-                              <td>{device.model || (device.deviceType === 'softpos' ? 'SoftPOS' : '—')}</td>
-                              <td>
-                                <span className={`badge bg-${
-                                  device.status === 'active' ? 'success' : 
-                                  device.status === 'pending' ? 'warning text-dark' : 
-                                  'secondary'}`}>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">{device.model || (device.deviceType === 'softpos' ? 'SoftPOS' : '—')}</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-lg ${
+                                  device.status === 'active' ? 'bg-gradient-to-tl from-green-500 to-teal-400 text-white' : 
+                                  device.status === 'pending' ? 'bg-gradient-to-tl from-yellow-400 to-orange-500 text-white' : 
+                                  'bg-gray-100 text-gray-800'}`}>
                                   {device.status ? 
                                     device.status.charAt(0).toUpperCase() + device.status.slice(1) : 
                                     'Unknown'}
                                 </span>
                               </td>
-                              <td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm">
                                 <button 
-                                  className="btn btn-danger btn-sm"
+                                  className="inline-block px-3 py-1 text-xs font-bold leading-normal text-center text-red-500 align-middle transition-all bg-transparent border border-red-500 rounded-lg shadow-none cursor-pointer hover:bg-red-50 hover:text-red-600 hover:shadow-soft-xs active:opacity-85 tracking-tight-soft"
                                   onClick={() => handleRemoveDevice(device.id || device._id)}
                                 >
                                   Remove

@@ -32,29 +32,31 @@ function DirectApiTest() {
   };
 
   return (
-    <div className="container py-4">
-      <h2>Direct API Test</h2>
-      <div className="card">
-        <div className="card-body">
+    <div className="container mx-auto px-4 py-6">
+      <h2 className="text-2xl font-bold mb-4">Direct API Test</h2>
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6">
           <button 
-            className="btn btn-primary mb-3" 
-            onClick={testApi}
+            onClick={testApi} 
             disabled={loading}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mb-3" 
           >
-            {loading ? 'Testing API...' : 'Test API Connection'}
+            Test Direct Connection
           </button>
           
           {error && (
-            <div className="alert alert-danger">{error}</div>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">{error}</div>
           )}
           
           {response && (
             <div>
-              <h3>API Response:</h3>
-              <p>Found {Array.isArray(response) ? response.length : 0} merchants</p>
-              <pre className="bg-light p-3" style={{maxHeight: '300px', overflow: 'auto'}}>
-                {JSON.stringify(response, null, 2)}
-              </pre>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">API Response:</h3>
+              <p className="mb-2">Found {Array.isArray(response) ? response.length : 0} merchants</p>
+              <div className="bg-gray-50 p-4 rounded">
+                <pre className="text-sm max-h-72 overflow-auto">
+                  {JSON.stringify(response, null, 2)}
+                </pre>
+              </div>
             </div>
           )}
         </div>

@@ -1,2 +1,139 @@
-/* This file is no longer used for Tailwind CSS.
-   Bootstrap CSS is imported directly in index.js */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-gray-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-all duration-200 inline-flex items-center justify-center;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white;
+  }
+  
+  .btn-outline-primary {
+    @apply border border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white;
+  }
+  
+  .btn-success {
+    @apply bg-success-600 hover:bg-success-700 text-white;
+  }
+  
+  .btn-outline-success {
+    @apply border border-success-600 text-success-600 hover:bg-success-600 hover:text-white;
+  }
+  
+  .btn-danger {
+    @apply bg-danger-600 hover:bg-danger-700 text-white;
+  }
+  
+  .btn-outline-danger {
+    @apply border border-danger-600 text-danger-600 hover:bg-danger-600 hover:text-white;
+  }
+  
+  .btn-warning {
+    @apply bg-warning-500 hover:bg-warning-600 text-white;
+  }
+  
+  .btn-outline-warning {
+    @apply border border-warning-500 text-warning-600 hover:bg-warning-500 hover:text-white;
+  }
+  
+  .btn-sm {
+    @apply px-3 py-1 text-sm;
+  }
+  
+  .badge {
+    @apply px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-primary-600 text-white;
+  }
+  
+  .badge-success {
+    @apply bg-success-600 text-white;
+  }
+  
+  .badge-danger {
+    @apply bg-danger-600 text-white;
+  }
+  
+  .badge-warning {
+    @apply bg-warning-500 text-warning-900;
+  }
+  
+  .badge-info {
+    @apply bg-info-500 text-white;
+  }
+  
+  .badge-secondary {
+    @apply bg-gray-500 text-white;
+  }
+  
+  .form-control {
+    @apply block w-full rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow overflow-hidden;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-gray-100;
+  }
+  
+  .card-body {
+    @apply p-6;
+  }
+  
+  .table {
+    @apply min-w-full divide-y divide-gray-200;
+  }
+  
+  .table th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+  
+  .table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
+  }
+  
+  .table-striped tr:nth-child(odd) {
+    @apply bg-gray-50;
+  }
+  
+  .alert {
+    @apply p-4 rounded-lg;
+  }
+  
+  .alert-success {
+    @apply bg-success-100 text-success-800;
+  }
+  
+  .alert-danger {
+    @apply bg-danger-100 text-danger-800;
+  }
+  
+  .alert-warning {
+    @apply bg-warning-100 text-warning-800;
+  }
+  
+  .alert-info {
+    @apply bg-info-100 text-info-800;
+  }
+}
