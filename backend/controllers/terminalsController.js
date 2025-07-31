@@ -40,46 +40,69 @@ module.exports = {
   },
   list: async (req, res) => {
     try {
+      // Pagination params
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 20;
+      const skip = (page - 1) * limit;
+
       // Check if we're connected to the database
       if (global.dbConnected) {
-        console.log('Using MongoDB for terminals list');
-        const terminals = await Terminal.find();
-        return res.json({ 
-          terminals, 
-          total: terminals.length,
+        console.log('Using MongoDB for terminals list with pagination');
+        const total = await Terminal.countDocuments();
+        const terminals = await Terminal.find().skip(skip).limit(limit);
+        return res.json({
+          terminals,
+          total,
+          page,
+          pageSize: limit,
+          totalPages: Math.ceil(total / limit),
           source: 'database'
         });
       }
-      
+
       // Using in-memory data
-      console.log('Using mock data for terminals list');
+      console.log('Using mock data for terminals list with pagination');
       // Collect all terminals from merchants
-      const assignedTerminals = global.merchants
+      const merchants = Array.isArray(global.merchants) ? global.merchants : [];
+      const assignedTerminals = merchants
         .filter(m => m.terminals && m.terminals.length)
         .flatMap(m => m.terminals.map(t => ({
           ...t,
           merchant: m.id,
           merchantName: m.name
         })));
-      
+
       // Get unassigned terminals
-      const unassignedTerminals = global.terminals.map(t => ({...t, merchant: '', merchantName: ''}));
-      
+      const terminalsArr = Array.isArray(global.terminals) ? global.terminals : [];
+      const unassignedTerminals = terminalsArr.map(t => ({ ...t, merchant: '', merchantName: '' }));
+
+      let allTerminals = [...assignedTerminals, ...unassignedTerminals];
+      const total = allTerminals.length;
+      const totalPages = Math.ceil(total / limit);
+
       // Filter terminals if requested
       if (req.query.filter === 'available') {
-        // Return only available/unassigned terminals
-        return res.json({ 
-          terminals: unassignedTerminals,
+        // Return only available/unassigned terminals, paginated
+        const paged = unassignedTerminals.slice(skip, skip + limit);
+        return res.json({
+          terminals: paged,
           total: unassignedTerminals.length,
+          page,
+          pageSize: limit,
+          totalPages: Math.ceil(unassignedTerminals.length / limit),
           unassigned: unassignedTerminals.length,
           source: 'mock'
         });
       }
-      
-      // Return all terminals
-      return res.json({ 
-        terminals: [...assignedTerminals, ...unassignedTerminals],
-        total: assignedTerminals.length + unassignedTerminals.length,
+
+      // Return paginated terminals
+      const paged = allTerminals.slice(skip, skip + limit);
+      return res.json({
+        terminals: paged,
+        total,
+        page,
+        pageSize: limit,
+        totalPages,
         assigned: assignedTerminals.length,
         unassigned: unassignedTerminals.length,
         source: 'mock'
@@ -88,21 +111,31 @@ module.exports = {
       console.error('Error fetching terminals:', error);
       // Return mock data even on error
       console.log('Error occurred, using mock data for terminals list');
-      
+
       try {
-        const assignedTerminals = global.merchants
+        const merchants = Array.isArray(global.merchants) ? global.merchants : [];
+        const assignedTerminals = merchants
           .filter(m => m.terminals && m.terminals.length)
           .flatMap(m => m.terminals.map(t => ({
             ...t,
             merchant: m.id,
             merchantName: m.name
           })));
-        
-        const unassignedTerminals = global.terminals.map(t => ({...t, merchant: '', merchantName: ''}));
-        
-        return res.json({ 
-          terminals: [...assignedTerminals, ...unassignedTerminals],
-          total: assignedTerminals.length + unassignedTerminals.length,
+        const terminalsArr = Array.isArray(global.terminals) ? global.terminals : [];
+        const unassignedTerminals = terminalsArr.map(t => ({ ...t, merchant: '', merchantName: '' }));
+        const allTerminals = [...assignedTerminals, ...unassignedTerminals];
+        const total = allTerminals.length;
+        const totalPages = Math.ceil(total / (parseInt(req.query.limit, 10) || 20));
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 20;
+        const skip = (page - 1) * limit;
+        const paged = allTerminals.slice(skip, skip + limit);
+        return res.json({
+          terminals: paged,
+          total,
+          page,
+          pageSize: limit,
+          totalPages,
           assigned: assignedTerminals.length,
           unassigned: unassignedTerminals.length,
           source: 'mock',
@@ -110,7 +143,7 @@ module.exports = {
         });
       } catch (fallbackError) {
         // If even the mock data fails
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Failed to fetch terminals',
           error: error.message,
           fallbackError: fallbackError.message

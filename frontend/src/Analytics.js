@@ -162,20 +162,22 @@ function Analytics() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Analytics Dashboard</h1>
-        <p className="text-gray-500">Track your payment processing performance metrics</p>
-      </div>
+    <div className="container mx-auto max-w-7xl px-4 py-10">
+      <header className="mb-10">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-2 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h3m4 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Analytics Dashboard
+        </h1>
+        <p className="text-gray-500 text-lg">Track your payment processing performance metrics and trends.</p>
+      </header>
 
       {/* Date Range Selector */}
-      <div className="mb-6">
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <section className="mb-10">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-100">
           <div className="flex items-center gap-2">
-            <span className="text-sm">Time Period:</span>
+            <span className="text-base font-medium text-gray-700">Time Period:</span>
             <select 
-              className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
+              className="block rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base px-3 py-2" 
               value={dateRange}
               onChange={handleDateRangeChange}
             >
@@ -185,41 +187,40 @@ function Analytics() {
               <option value="ytd">Year to Date</option>
             </select>
           </div>
-          <button className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 font-semibold flex items-center gap-2">
-            {/* Download icon can be replaced with Heroicons or similar */}
+          <button className="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-semibold flex items-center gap-2 transition focus:outline-none focus:ring-2 focus:ring-blue-400">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
             Export
           </button>
         </div>
-      </div>
+      </section>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-10">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
           <span className="text-gray-500 text-xs mb-1">Total Revenue</span>
           <span className="text-2xl font-bold">{metrics.totalRevenue}</span>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
           <span className="text-gray-500 text-xs mb-1">Transactions</span>
           <span className="text-2xl font-bold">{metrics.transactionCount}</span>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
           <span className="text-gray-500 text-xs mb-1">Average Value</span>
           <span className="text-2xl font-bold">{metrics.averageTransaction}</span>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
           <span className="text-gray-500 text-xs mb-1">Success Rate</span>
           <span className="text-2xl font-bold">{metrics.successRate}</span>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
           <span className="text-gray-500 text-xs mb-1">Top Terminal</span>
           <span className="text-2xl font-bold">{metrics.mostActiveTerminal}</span>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
           <span className="text-gray-500 text-xs mb-1">Top Merchant</span>
           <span className="text-2xl font-bold">{metrics.topMerchant}</span>
         </div>
-      </div>
+      </section>
 
       {/* Charts */}
       <div className="flex flex-col lg:flex-row gap-6 mb-6">

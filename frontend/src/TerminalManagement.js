@@ -3,6 +3,10 @@ import api, { API_ENDPOINTS } from './utils/api';
 
 function TerminalManagement() {
   const [terminals, setTerminals] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
   const [selectedTerminal, setSelectedTerminal] = useState(null);
   const [config, setConfig] = useState({ language: '', currency: '', receiptFormat: '' });
   const [configResult, setConfigResult] = useState(null);
@@ -29,33 +33,36 @@ function TerminalManagement() {
     setTimeout(() => setNotification({ type: '', message: '' }), 2000);
   };
   
-  const fetchTerminals = async () => {
+  const fetchTerminals = async (pageNum = 1) => {
     const params = [];
     if (filter.status) params.push(`status=${encodeURIComponent(filter.status)}`);
     if (filter.merchant) params.push(`merchant=${encodeURIComponent(filter.merchant)}`);
     if (filter.limit) params.push(`limit=${encodeURIComponent(filter.limit)}`);
+    params.push(`page=${pageNum}`);
+    params.push(`limit=${pageSize}`);
     const queryString = params.length ? `?${params.join('&')}` : '';
-    
+
     try {
       const data = await api.get(`${API_ENDPOINTS.TERMINALS}${queryString}`);
-      
+
       // Handle different response formats
       let terminalsData = [];
-      
+      let totalPagesResp = 1;
+      let totalResp = 0;
+
       if (Array.isArray(data)) {
-        // Direct array response
         terminalsData = data;
       } else if (data && data.terminals && Array.isArray(data.terminals)) {
-        // Response with terminals property containing array
         terminalsData = data.terminals;
+        totalPagesResp = data.totalPages || 1;
+        totalResp = data.total || terminalsData.length;
       } else {
         console.warn('Unexpected response format for terminals:', data);
         terminalsData = [];
       }
-      
+
       // Ensure all terminals have proper data for display
       const enhancedTerminals = terminalsData.map(terminal => {
-        // Add default configuration if missing
         if (!terminal.config) {
           terminal.config = {
             language: terminal.id % 3 === 0 ? 'en' : terminal.id % 3 === 1 ? 'ar' : 'fr',
@@ -63,22 +70,23 @@ function TerminalManagement() {
             receiptFormat: terminal.id % 2 === 0 ? 'detailed' : 'simple'
           };
         }
-        
-        // Add transaction limit if missing
         if (!terminal.transaction_limit) {
           terminal.transaction_limit = (5000 + (terminal.id * 1000 % 10000)).toFixed(2);
         }
-        
         return terminal;
       });
-      
+
       setTerminals(enhancedTerminals);
+      setTotalPages(totalPagesResp);
+      setTotal(totalResp);
     } catch (error) {
       showError(`Failed to fetch terminals: ${error.message}`);
     }
   };
   
-  useEffect(() => { fetchTerminals(); }, [filter]);
+  useEffect(() => {
+    fetchTerminals(page);
+  }, [filter, page]);
 
   // Terminal config update
   const handleConfigUpdate = async () => {
@@ -125,21 +133,14 @@ function TerminalManagement() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Terminal Management</h2>
-        <nav className="text-sm">
-          <ol className="flex items-center space-x-2">
-            <li><a href="/admin-panel" className="text-primary-600 hover:text-primary-800">Dashboard</a></li>
-            <li className="flex items-center">
-              <svg className="h-4 w-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-              <span className="text-gray-700">Terminals</span>
-            </li>
-          </ol>
-        </nav>
-      </div>
+    <div className="container mx-auto max-w-7xl px-4 py-10">
+      <header className="mb-10">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-2 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a5 5 0 00-10 0v2a2 2 0 00-2 2v7a2 2 0 002 2h10a2 2 0 002-2v-7a2 2 0 00-2-2z" /></svg>
+          Terminal Management
+        </h1>
+        <p className="text-gray-500 text-lg">Manage, configure, and monitor your payment terminals.</p>
+      </header>
       
       {/* Terminal Filters */}
       <div className="bg-white rounded-lg shadow mb-6">
@@ -383,7 +384,96 @@ function TerminalManagement() {
           </table>
         </div>
       </div>
-      
+
+      {/* Pagination Controls */}
+      <nav className="flex flex-col sm:flex-row flex-wrap justify-between items-center mt-6 px-2 gap-2" aria-label="Pagination">
+        <div className="text-sm text-gray-600 mb-2 sm:mb-0">
+          Page <span className="font-semibold text-gray-900">{page}</span> of <span className="font-semibold text-gray-900">{totalPages}</span> <span className="hidden sm:inline">({total} terminals)</span>
+        </div>
+        <div className="flex flex-wrap gap-1 overflow-x-auto rounded-lg bg-gray-50 p-2 shadow-inner">
+          <button
+            className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            onClick={() => setPage(page - 1)}
+            disabled={page <= 1}
+            aria-label="Previous Page"
+          >
+            &larr;
+          </button>
+          {/* Compact pagination logic with ellipses */}
+          {(() => {
+            const pageButtons = [];
+            const maxButtons = 5; // Show current, ±2, first, last
+            let start = Math.max(2, page - 2);
+            let end = Math.min(totalPages - 1, page + 2);
+            if (page <= 3) {
+              start = 2;
+              end = Math.min(5, totalPages - 1);
+            }
+            if (page >= totalPages - 2) {
+              start = Math.max(2, totalPages - 4);
+              end = totalPages - 1;
+            }
+            // First page
+            pageButtons.push(
+              <button
+                key={1}
+                className={`px-3 py-1 rounded-lg font-semibold ${page === 1 ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                aria-current={page === 1 ? 'page' : undefined}
+              >
+                1
+              </button>
+            );
+            // Ellipsis before
+            if (start > 2) {
+              pageButtons.push(<span key="start-ellipsis" className="px-2 text-gray-400">...</span>);
+            }
+            // Middle pages
+            for (let p = start; p <= end; p++) {
+              pageButtons.push(
+                <button
+                  key={p}
+                  className={`px-3 py-1 rounded-lg font-semibold ${p === page ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  onClick={() => setPage(p)}
+                  disabled={p === page}
+                  aria-current={p === page ? 'page' : undefined}
+                >
+                  {p}
+                </button>
+              );
+            }
+            // Ellipsis after
+            if (end < totalPages - 1) {
+              pageButtons.push(<span key="end-ellipsis" className="px-2 text-gray-400">...</span>);
+            }
+            // Last page
+            if (totalPages > 1) {
+              pageButtons.push(
+                <button
+                  key={totalPages}
+                  className={`px-3 py-1 rounded-lg font-semibold ${page === totalPages ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  onClick={() => setPage(totalPages)}
+                  disabled={page === totalPages}
+                  aria-current={page === totalPages ? 'page' : undefined}
+                >
+                  {totalPages}
+                </button>
+              );
+            }
+            return pageButtons;
+          })()}
+          <button
+            className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            onClick={() => setPage(page + 1)}
+            disabled={page >= totalPages}
+            aria-label="Next Page"
+          >
+            &rarr;
+          </button>
+        </div>
+      </nav>
+
       {/* Terminal Actions */}
       {selectedTerminal && (
         <div className="bg-white rounded-lg shadow mb-6">

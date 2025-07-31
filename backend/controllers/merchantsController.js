@@ -92,35 +92,6 @@ module.exports = {
     const merchant = await Merchant.findByIdAndUpdate(id, { tier: 'premium' }, { new: true });
     res.json({ message: 'Upgraded to premium.', merchant });
   },
-  downgrade: async (req, res) => {
-    const { id } = req.params;
-    const merchant = await Merchant.findByIdAndUpdate(id, { tier: 'standard' }, { new: true });
-    res.json({ message: 'Downgraded to standard.', merchant });
-  },
-  transferOwnership: async (req, res) => {
-    const { id } = req.params;
-    const { newOwner } = req.body;
-    const merchant = await Merchant.findByIdAndUpdate(id, { owner: newOwner }, { new: true });
-    res.json({ message: 'Ownership transferred.', merchant });
-  },
-  addLocation: async (req, res) => {
-    const { id } = req.params;
-    const { location } = req.body;
-    const merchant = await Merchant.findById(id);
-    merchant.locations.push(location);
-    await merchant.save();
-    res.json({ message: 'Location added.', merchant });
-  },
-  closeAccount: async (req, res) => {
-    const { id } = req.params;
-    const merchant = await Merchant.findByIdAndUpdate(id, { status: 'closed' }, { new: true });
-    res.json({ message: 'Account closed.', merchant });
-  },
-  updateConfig: async (req, res) => {
-    const { id } = req.params;
-    const merchant = await Merchant.findByIdAndUpdate(id, { config: req.body }, { new: true });
-    res.json({ message: 'Config updated.', merchant });
-  },
   reviewAccount: async (req, res) => {
     // Basic risk flagging example
     const merchantId = req.params.id;
@@ -134,90 +105,62 @@ module.exports = {
     // Add more rules as needed
     res.json({ merchantId, flags, riskLevel: flags.length === 0 ? 'low' : 'high' });
   },
-  getProfile: async (req, res) => {
-    const { id } = req.params;
-    console.log('GET request received for merchant ID:', id);
-    
-    try {
-      // Check if we're connected to the database
-      if (global.dbConnected) {
-        console.log('Using MongoDB for merchant profile');
-        // For MongoDB, we'd use the actual ObjectId
-        const merchant = await Merchant.findById(id);
-        if (merchant) {
-          return res.json({
-            merchant,
-            source: 'database'
-          });
-        }
-      }
-      
-      // If not connected to MongoDB or merchant not found, use mock data
-      console.log('Using mock data for merchant ID:', id);
-      const mockMerchant = global.merchants.find(m => m.id.toString() === id.toString());
-      if (mockMerchant) {
-        return res.json({
-          merchant: mockMerchant,
-          source: 'mock'
-        });
-      }
-      
-      return res.status(404).json({ error: 'Merchant not found', source: 'mock' });
-    } catch (error) {
-      console.error('Error fetching merchant profile:', error);
-      
-      // If there's an error, provide mock data for development
-      try {
-        const mockMerchant = global.merchants.find(m => m.id.toString() === id.toString());
-        if (mockMerchant) {
-          console.log('Returning mock data for merchant ID:', id);
-          return res.json({
-            merchant: mockMerchant,
-            source: 'mock',
-            error: error.message
-          });
-        }
-      } catch (fallbackError) {
-        console.error('Error using mock data:', fallbackError);
-      }
-      
-      res.status(500).json({ error: 'Failed to fetch merchant profile' });
-    }
-  },
   list: async (req, res) => {
     console.log('GET request received for merchant list');
-    
     try {
-      // Check if we're connected to the database
+      // Pagination params
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 20;
+      const skip = (page - 1) * limit;
+
       if (global.dbConnected) {
-        console.log('Using MongoDB for merchant list');
-        const merchants = await Merchant.find();
+        console.log('Using MongoDB for merchant list with pagination');
+        const total = await Merchant.countDocuments();
+        const merchants = await Merchant.find().skip(skip).limit(limit);
         return res.json({
           merchants,
-          total: merchants.length,
+          total,
+          page,
+          pageSize: limit,
+          totalPages: Math.ceil(total / limit),
           source: 'database'
         });
       }
-      
+
       // If not connected to MongoDB, use mock data
-      console.log('Using mock data for merchant list');
+      console.log('Using mock data for merchant list with pagination');
+      const all = global.merchants || [];
+      const total = all.length;
+      const paged = all.slice(skip, skip + limit);
       return res.json({
-        merchants: global.merchants,
-        total: global.merchants.length,
+        merchants: paged,
+        total,
+        page,
+        pageSize: limit,
+        totalPages: Math.ceil(total / limit),
         source: 'mock'
       });
-      
     } catch (error) {
-      console.error('Error fetching merchant list:', error);
-      
-      // If there's an error, provide mock data for development
-      console.log('Returning mock data for merchant list due to error');
-      return res.json({
-        merchants: global.merchants || [],
-        total: global.merchants ? global.merchants.length : 0,
-        source: 'mock',
-        error: error.message
-      });
+      console.error('Error fetching merchants:', error);
+      res.status(500).json({ error: 'Failed to fetch merchants' });
     }
+  },
+  downgrade: async (req, res) => {
+    res.json({ message: 'Downgrade endpoint not yet implemented.' });
+  },
+  transferOwnership: async (req, res) => {
+    res.json({ message: 'Transfer ownership endpoint not yet implemented.' });
+  },
+  addLocation: async (req, res) => {
+    res.json({ message: 'Add location endpoint not yet implemented.' });
+  },
+  closeAccount: async (req, res) => {
+    res.json({ message: 'Close account endpoint not yet implemented.' });
+  },
+  updateConfig: async (req, res) => {
+    res.json({ message: 'Update config endpoint not yet implemented.' });
+  },
+  getProfile: async (req, res) => {
+    res.json({ message: 'Get profile endpoint not yet implemented.' });
   }
 };

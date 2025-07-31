@@ -136,23 +136,12 @@ EOL'
 
 # Function to initialize the database
 initialize_database() {
-  echo -e "${PURPLE}Initializing database with sample data...${NC}"
+  echo -e "${PURPLE}Cleaning MongoDB database...${NC}"
+  mongo merchant-acquiring-mvp --eval "db.dropDatabase()" 2>&1 | tee -a "$LOGFILE"
+  echo -e "${PURPLE}Seeding database with init-data.js...${NC}"
   cd "$BACKEND_DIR"
-  
-  # Run the database initialization script directly without pipe to see immediate output
-  echo -e "${PURPLE}Running init-db.js...${NC}"
-  node init-db.js 2>&1 | tee -a "$LOGFILE"
-  INIT_DB_RESULT=$?
-  
-  # Check if initialization was successful
-  if [ $INIT_DB_RESULT -eq 0 ]; then
-    echo -e "${PURPLE}Database initialized successfully${NC}"
-  else
-    echo -e "${RED}Failed to initialize database (Exit code: $INIT_DB_RESULT)${NC}"
-    echo -e "${RED}Check the logs for details${NC}"
-    # Continue anyway as it might be just a warning or connection issue
-    echo -e "${YELLOW}Continuing with startup process...${NC}"
-  fi
+  node init-data.js 2>&1 | tee -a "$LOGFILE"
+  echo -e "${PURPLE}Database initialized with large dataset${NC}"
 }
 
 # Function to start backend
