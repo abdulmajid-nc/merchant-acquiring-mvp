@@ -317,19 +317,23 @@ export const setMockDataNotifier = (callback) => {
 export const fetchApi = async (endpoint, options = {}) => {
   const url = getApiUrl(endpoint);
   console.log(`API Request to: ${url}`);
-  
+
+  // Get token from localStorage (adjust key if your app uses a different one)
+  const token = localStorage.getItem('token');
+
   try {
-    // Add default headers if not provided
+    // Add default headers if not provided, and include Authorization if token exists
     const fetchOptions = {
       ...options,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...(options.headers || {})
       },
       mode: 'cors'
     };
-    
+
     // Try to fetch from the actual API
     const response = await fetch(url, fetchOptions);
     

@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const transactionsController = require('../controllers/transactionsController');
-const auth = require('../middleware/auth');
 
-// Apply auth middleware to all routes
-router.use(auth);
 
 // GET /api/transactions - Get all transactions
 router.get('/', transactionsController.getTransactions);

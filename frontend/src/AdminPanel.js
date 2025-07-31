@@ -112,16 +112,18 @@ function AdminPanel() {
   };
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-        <p className="text-gray-500">Welcome to Nymcard Acquire - Your comprehensive payment processing platform</p>
-      </div>
-      
+    <main className="container mx-auto px-2 sm:px-4 py-6 min-h-screen bg-gray-50">
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-1">Dashboard</h1>
+          <p className="text-gray-500 text-base">Welcome to Nymcard Acquire — Your comprehensive payment processing platform</p>
+        </div>
+      </header>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <section aria-label="Dashboard Metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Total Revenue Card */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
           <div className="flex justify-between items-center mb-3">
             <h6 className="text-gray-500 text-sm font-medium">Total Revenue</h6>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,7 +146,7 @@ function AdminPanel() {
         </div>
         
         {/* Transactions Card */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
           <div className="flex justify-between items-center mb-3">
             <h6 className="text-gray-500 text-sm font-medium">Transactions</h6>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,7 +169,7 @@ function AdminPanel() {
         </div>
         
         {/* Active Merchants Card */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
           <div className="flex justify-between items-center mb-3">
             <h6 className="text-gray-500 text-sm font-medium">Active Merchants</h6>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,7 +192,7 @@ function AdminPanel() {
         </div>
         
         {/* Success Rate Card */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
           <div className="flex justify-between items-center mb-3">
             <h6 className="text-gray-500 text-sm font-medium">Success Rate</h6>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -211,12 +213,12 @@ function AdminPanel() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         {/* Transaction Volume Chart */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 h-full">
+          <div className="bg-white rounded-xl shadow p-6 border border-gray-100 h-full transition-shadow hover:shadow-md">
             <h5 className="text-lg font-bold mb-1">Transaction Volume</h5>
             <p className="text-gray-500 text-sm mb-4">Real-time transaction processing overview for the last 24 hours</p>
             
@@ -273,7 +275,7 @@ function AdminPanel() {
         
         {/* System Health */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 h-full">
+          <div className="bg-white rounded-xl shadow p-6 border border-gray-100 h-full transition-shadow hover:shadow-md">
             <h5 className="text-lg font-bold mb-1">System Health</h5>
             <p className="text-gray-500 text-sm mb-4">Real-time monitoring of payment processing infrastructure</p>
             
@@ -328,11 +330,11 @@ function AdminPanel() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
       
       {/* Transaction Status Checker */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
           <h5 className="text-lg font-bold mb-3">Transaction Status Checker</h5>
           <p className="text-gray-500 text-sm mb-3">Enter transaction ID to check its current status</p>
           
@@ -387,7 +389,7 @@ function AdminPanel() {
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 h-full">
+        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 h-full transition-shadow hover:shadow-md">
           <h5 className="text-lg font-bold mb-3">Recent Status Checks</h5>
           <p className="text-gray-500 text-sm mb-3">History of recent status inquiries</p>
           
@@ -415,12 +417,12 @@ function AdminPanel() {
             </li>
           </ul>
         </div>
-      </div>
+      </section>
       
       {/* Recent Transactions */}
-      <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 mb-4">
+      <section className="bg-white rounded-xl shadow p-6 border border-gray-100 mb-8 transition-shadow hover:shadow-md">
         <h5 className="text-lg font-bold mb-4">Recent Transactions</h5>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border border-gray-100">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -482,29 +484,32 @@ function AdminPanel() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
       
       {notification.type && (
-        <div className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
-          notification.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 
-          notification.type === 'danger' ? 'bg-red-50 text-red-700 border border-red-200' :
-          'bg-blue-50 text-blue-700 border border-blue-200'
-        }`} role="alert">
-          <div className="flex justify-between items-center">
-            <div>{notification.message}</div>
-            <button 
-              type="button" 
-              className="ml-4 text-gray-400 hover:text-gray-600" 
-              onClick={() => setNotification({ type: '', message: '' })}
-            >
-              <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+        <div
+          className={`fixed bottom-4 right-4 z-50 p-4 rounded-xl shadow-lg border flex items-center gap-3 min-w-[260px] max-w-xs
+            ${notification.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' :
+              notification.type === 'danger' ? 'bg-red-50 text-red-700 border-red-200' :
+              'bg-blue-50 text-blue-700 border-blue-200'}
+          `}
+          role="alert"
+          aria-live="assertive"
+        >
+          <span className="flex-1">{notification.message}</span>
+          <button
+            type="button"
+            className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 rounded"
+            aria-label="Dismiss notification"
+            onClick={() => setNotification({ type: '', message: '' })}
+          >
+            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
