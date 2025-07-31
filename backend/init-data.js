@@ -35,8 +35,14 @@ const Terminal = mongoose.model('Terminal', terminalSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
 const statuses = ['approved', 'declined', 'pending', 'settled'];
-const businessTypes = ['retail', 'restaurant', 'service', 'ecommerce'];
-const terminalModels = ['PAX A80', 'PAX A60', 'Verifone V200c', 'Ingenico iWL250'];
+const businessTypes = [
+  'Retail', 'Restaurant', 'Supermarket', 'Pharmacy', 'Electronics', 'Clothing', 'Cafe', 'Bakery', 'Bookstore', 'Gas Station', 'Salon', 'Gym', 'Hotel', 'Ecommerce', 'Service'
+];
+const merchantNames = [
+  'Acme Retail', 'Best Eats', 'SuperMart', 'HealthPlus Pharmacy', 'Tech World', 'Fashion Hub', 'Cafe Aroma', 'Sweet Treats Bakery',
+  'Readers Corner', 'Fuel Express', 'Urban Salon', 'FitLife Gym', 'Grand Hotel', 'ShopOnline', 'QuickFix Services'
+];
+const terminalModels = ['PAX A80', 'PAX A60', 'Verifone V200c', 'Ingenico iWL250', 'Clover Flex', 'Square Terminal'];
 
 function randomDate(start, end) {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
@@ -66,12 +72,21 @@ async function seedAllData() {
   // 1. Merchants
   const merchants = [];
   for (let i = 0; i < 1000; i++) {
+    const name = merchantNames[i % merchantNames.length] + (i < merchantNames.length ? '' : ` ${Math.floor(i/merchantNames.length)+1}`);
+    const email = name.toLowerCase().replace(/[^a-z0-9]+/g, '') + '@example.com';
+    const business_type = businessTypes[i % businessTypes.length];
+    // More 'approved' and 'settled', fewer 'declined'
+    const statusRand = Math.random();
+    let status = 'approved';
+    if (statusRand < 0.1) status = 'declined';
+    else if (statusRand < 0.2) status = 'pending';
+    else if (statusRand < 0.5) status = 'settled';
     merchants.push({
-      name: `Merchant ${i+1}`,
-      email: `merchant${i+1}@example.com`,
-      business_type: businessTypes[Math.floor(Math.random() * businessTypes.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      created_at: randomDate(new Date(2025, 0, 1), new Date())
+      name,
+      email,
+      business_type,
+      status,
+      created_at: randomDate(new Date(2024, 0, 1), new Date())
     });
   }
   const merchantDocs = await Merchant.insertMany(merchants);
@@ -80,11 +95,21 @@ async function seedAllData() {
   // 2. Terminals
   const terminals = [];
   for (let i = 0; i < 1000; i++) {
+    const model = terminalModels[i % terminalModels.length];
+    // Serial: Model initials + random string
+    const initials = model.split(' ').map(w => w[0]).join('').toUpperCase();
+    const serial = `${initials}${randomString(6)}`;
+    // More 'active', fewer 'declined'
+    const statusRand = Math.random();
+    let status = 'approved';
+    if (statusRand < 0.1) status = 'declined';
+    else if (statusRand < 0.2) status = 'pending';
+    else if (statusRand < 0.5) status = 'settled';
     terminals.push({
-      serial: `T${randomString(8)}`,
-      model: terminalModels[Math.floor(Math.random() * terminalModels.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      last_ping: randomDate(new Date(2025, 0, 1), new Date())
+      serial,
+      model,
+      status,
+      last_ping: randomDate(new Date(2024, 0, 1), new Date())
     });
   }
   const terminalDocs = await Terminal.insertMany(terminals);
@@ -93,12 +118,24 @@ async function seedAllData() {
   // 3. Transactions
   const txns = [];
   for (let i = 0; i < 1000; i++) {
+    // Amount: 60% small (<$100), 30% medium (<$500), 10% large (<$2000)
+    let amount;
+    const amtRand = Math.random();
+    if (amtRand < 0.6) amount = parseFloat((Math.random() * 90 + 10).toFixed(2));
+    else if (amtRand < 0.9) amount = parseFloat((Math.random() * 400 + 100).toFixed(2));
+    else amount = parseFloat((Math.random() * 1800 + 200).toFixed(2));
+    // Status: more 'approved' and 'settled', fewer 'declined'
+    const statusRand = Math.random();
+    let status = 'approved';
+    if (statusRand < 0.1) status = 'declined';
+    else if (statusRand < 0.2) status = 'pending';
+    else if (statusRand < 0.5) status = 'settled';
     txns.push({
       terminal: terminalDocs[Math.floor(Math.random() * terminalDocs.length)]._id,
       merchant: merchantDocs[Math.floor(Math.random() * merchantDocs.length)]._id,
-      amount: parseFloat((Math.random() * 500 + 10).toFixed(2)),
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      created_at: randomDate(new Date(2025, 0, 1), new Date()),
+      amount,
+      status,
+      created_at: randomDate(new Date(2024, 0, 1), new Date()),
       __v: 0
     });
   }

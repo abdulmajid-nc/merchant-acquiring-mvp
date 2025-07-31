@@ -136,12 +136,12 @@ EOL'
 
 # Function to initialize the database
 initialize_database() {
-  echo -e "${PURPLE}Cleaning MongoDB database...${NC}"
-  mongo merchant-acquiring-mvp --eval "db.dropDatabase()" 2>&1 | tee -a "$LOGFILE"
+  echo -e "${RED}Dropping MongoDB database 'merchant-acquiring-mvp' before seeding...${NC}"
+  mongosh --quiet --eval "db.getSiblingDB('merchant-acquiring-mvp').dropDatabase()" 2>&1 | tee -a "$LOGFILE"
   echo -e "${PURPLE}Seeding database with init-data.js...${NC}"
   cd "$BACKEND_DIR"
   node init-data.js 2>&1 | tee -a "$LOGFILE"
-  echo -e "${PURPLE}Database initialized with large dataset${NC}"
+  echo -e "${PURPLE}Database initialized with fresh, realistic data${NC}"
 }
 
 # Function to start backend
