@@ -35,7 +35,6 @@ async function checkAndCreateTables() {
       await jpts.query(`
         CREATE TABLE merchants (
           id SERIAL PRIMARY KEY,
-          _id VARCHAR(50) UNIQUE,
           name VARCHAR(100) NOT NULL,
           email VARCHAR(100),
           business_type VARCHAR(50),
@@ -69,7 +68,6 @@ async function checkAndCreateTables() {
       await jpts.query(`
         CREATE TABLE terminals (
           id SERIAL PRIMARY KEY,
-          _id VARCHAR(50) UNIQUE,
           serial VARCHAR(50) NOT NULL,
           model VARCHAR(50),
           status VARCHAR(20),
@@ -98,7 +96,6 @@ async function checkAndCreateTables() {
       await jpts.query(`
         CREATE TABLE mccs (
           id SERIAL PRIMARY KEY,
-          _id VARCHAR(50) UNIQUE,
           code VARCHAR(10) NOT NULL UNIQUE,
           description TEXT,
           category VARCHAR(50),
@@ -155,7 +152,6 @@ async function checkAndCreateTables() {
       await jpts.query(`
         CREATE TABLE transactions (
           id SERIAL PRIMARY KEY,
-          _id VARCHAR(50) UNIQUE,
           merchant_id INTEGER REFERENCES merchants(id),
           terminal_id INTEGER REFERENCES terminals(id),
           merchant_id_text VARCHAR(15),

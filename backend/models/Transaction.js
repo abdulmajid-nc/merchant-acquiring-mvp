@@ -3,6 +3,10 @@
 const jptsAdapter = process.env.DB_TYPE === 'jpts' ? require('../jpts-adapter') : null;
 
 class TransactionModel {
+  // Make the adapter accessible for debugging
+  static get jpts() {
+    return jptsAdapter ? jptsAdapter.init() : null;
+  }
   constructor() {
     this.tableName = 'transactions';
     this.jpts = jptsAdapter ? jptsAdapter.init() : null;
@@ -43,13 +47,66 @@ class TransactionModel {
         throw new Error('JPTS adapter not initialized');
       }
       
-      const query = `SELECT 
-                     id, _id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
-                     amount, currency, status, type as transaction_type, created_at,
-                     card_number as masked_pan, auth_code as approval_code, reference
-                   FROM ${this.tableName} WHERE id = $1`;
-      const result = await this.jpts.query(query, [id]);
-      return result.rows.length ? result.rows[0] : null;
+      console.log(`[DEBUG] Transaction.findById called with id: ${id}, type: ${typeof id}`);
+      
+      // CRITICAL FIX: We need to handle different types of IDs and make sure our database query works
+      // with the updated table structure that now only uses 'id' as the primary key
+      
+      // If the input is a string that can be converted to a number
+      if (!isNaN(id) && id.toString().trim() !== '') {
+        // Convert to number for use with 'id' column
+        const numericId = parseInt(id, 10);
+        console.log(`[DEBUG] Converted ID to numeric: ${numericId}`);
+        
+        // Try to find the transaction by its numeric ID
+        const queryString = `
+          SELECT 
+            id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
+            amount, currency, status, type as transaction_type, created_at,
+            card_number as masked_pan, auth_code as approval_code, reference
+          FROM ${this.tableName} 
+          WHERE id = $1
+        `;
+        console.log(`[DEBUG] Running SQL query: ${queryString} with params: [${numericId}]`);
+        const result = await this.jpts.query(queryString, [numericId]);
+        
+        console.log(`[DEBUG] SQL query result:`, result.rows);
+        if (result.rows.length > 0) {
+          console.log(`[DEBUG] Found transaction by numeric ID: ${numericId}`);
+          return result.rows[0];
+        } else {
+          console.log(`[DEBUG] No transaction found with numeric ID: ${numericId}`);
+        }
+      }
+      
+      // If the ID is a string, or the numeric lookup failed, try as reference
+      // This provides a fallback mechanism
+      if (typeof id === 'string' && id.trim() !== '') {
+        console.log(`[DEBUG] Trying to find transaction by reference: ${id}`);
+        // The _id column has been removed, so we skip the _id check and directly try reference
+        
+        // Try as a reference
+        const refResult = await this.jpts.query(`
+          SELECT 
+            id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
+            amount, currency, status, type as transaction_type, created_at,
+            card_number as masked_pan, auth_code as approval_code, reference
+          FROM ${this.tableName} 
+          WHERE reference = $1
+        `, [id]);
+        
+        console.log(`[DEBUG] Reference search result:`, refResult.rows);
+        if (refResult.rows.length > 0) {
+          console.log(`[DEBUG] Found transaction by reference: ${id}`);
+          return refResult.rows[0];
+        } else {
+          console.log(`[DEBUG] No transaction found with reference: ${id}`);
+        }
+      }
+      
+      console.log(`[DEBUG] No transaction found with ID: ${id}`);
+      // If all lookups failed, return null
+      return null;
     } catch (error) {
       console.error(`Error finding transaction with id ${id}:`, error);
       throw error;
@@ -67,7 +124,7 @@ class TransactionModel {
       const offset = (page - 1) * limit;
       
       // Ensure valid sort field (prevent SQL injection)
-      const validSortFields = ['created_at', 'amount', 'status', 'merchant_id', 'terminal_id', '_id', 'currency', 'card_number'];
+      const validSortFields = ['created_at', 'amount', 'status', 'merchant_id', 'terminal_id', 'id', 'currency', 'card_number'];
       if (!validSortFields.includes(sortField)) {
         sortField = 'created_at';
       }
@@ -79,7 +136,7 @@ class TransactionModel {
       const countQuery = `SELECT COUNT(*) FROM ${this.tableName}`;
       const query = `
         SELECT 
-          id, _id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
+          id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
           amount, currency, status, type as transaction_type, created_at,
           card_number as masked_pan, auth_code as approval_code, reference
         FROM ${this.tableName} 
@@ -138,7 +195,7 @@ class TransactionModel {
       
       // Get transactions with pagination and sorting
       const query = `SELECT 
-                       id, _id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
+                       id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
                        amount, currency, status, transaction_type, created_at,
                        masked_pan, approval_code, reference
                      FROM ${this.tableName} 
@@ -163,7 +220,7 @@ class TransactionModel {
       const offset = (page - 1) * limit;
       
       const query = `SELECT 
-                       id, _id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
+                       id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
                        amount, currency, status, type as transaction_type, created_at,
                        card_number as masked_pan, auth_code as approval_code, reference
                      FROM ${this.tableName} 

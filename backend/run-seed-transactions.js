@@ -77,11 +77,10 @@ async function seedTransactions(pool, transactions) {
   
   for (const transaction of transactions) {
     await pool.query(
-      `INSERT INTO transactions (_id, merchant_id, terminal_id, amount, currency, 
+      `INSERT INTO transactions (merchant_id, terminal_id, amount, currency, 
                                card_number, status, type, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
-        transaction.id,
         transaction.merchant_id,
         transaction.terminal_id,
         transaction.amount,

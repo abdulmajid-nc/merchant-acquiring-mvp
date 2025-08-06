@@ -1,5 +1,4 @@
-const { getModel } = require('../models/ModelSelector');
-const Merchant = getModel('Merchant');
+const Merchant = require('../models/Merchant');
 
 module.exports = {
   bulkCreate: (req, res) => {
@@ -135,39 +134,39 @@ module.exports = {
       // Pagination params
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 20;
-      const skip = (page - 1) * limit;
-
-      if (global.dbConnected) {
-        console.log('Using database for merchant list with pagination');
-        try {
-          const result = await Merchant.find({}, page, limit, { created_at: 'DESC' });
-          return res.json({
-            merchants: result.merchants || [],
-            total: result.pagination ? result.pagination.total : 0,
-            page,
-            pageSize: limit,
-            totalPages: result.pagination ? result.pagination.pages : 0,
-            source: 'database'
-          });
-        } catch (err) {
-          console.error('Error in Merchant.find():', err);
-          throw err;
-        }
+      
+      console.log('Using database for merchant list with pagination');
+      try {
+        const result = await Merchant.find({}, page, limit, { created_at: 'DESC' });
+        console.log(`Found ${result.merchants ? result.merchants.length : 0} merchants in database`);
+        
+        return res.json({
+          merchants: result.merchants || [],
+          total: result.pagination ? result.pagination.total : 0,
+          page,
+          pageSize: limit,
+          totalPages: result.pagination ? result.pagination.pages : 0,
+          source: 'database'
+        });
+      } catch (err) {
+        console.error('Error in Merchant.find():', err);
+        
+        // Fallback to mock data if database query fails
+        console.log('Falling back to mock data for merchant list with pagination');
+        const skip = (page - 1) * limit;
+        const all = global.merchants || [];
+        const total = all.length;
+        const paged = all.slice(skip, skip + limit);
+        
+        return res.json({
+          merchants: paged,
+          total,
+          page,
+          pageSize: limit,
+          totalPages: Math.ceil(total / limit),
+          source: 'mock'
+        });
       }
-
-      // If not connected to database, use mock data
-      console.log('Using mock data for merchant list with pagination');
-      const all = global.merchants || [];
-      const total = all.length;
-      const paged = all.slice(skip, skip + limit);
-      return res.json({
-        merchants: paged,
-        total,
-        page,
-        pageSize: limit,
-        totalPages: Math.ceil(total / limit),
-        source: 'mock'
-      });
     } catch (error) {
       console.error('Error fetching merchants:', error);
       res.status(500).json({ error: 'Failed to fetch merchants' });

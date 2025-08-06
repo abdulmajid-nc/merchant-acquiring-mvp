@@ -363,20 +363,19 @@ async function seedMccs() {
       
       for (const mcc of currentBatch) {
         try {
-          // Generate a unique ID
-          const uniqueId = `mcc_${mcc.code}_${Date.now()}`;
+          // No need for a unique ID since we'll use the 'id' column as the primary key
           
           console.log(`Inserting MCC ${mcc.code}: ${mcc.description} with category: ${mcc.category}, risk level: ${mcc.risk_level}`);
           
           // Insert MCC
           await jpts.query(`
-            INSERT INTO mccs (_id, code, description, category, risk_level)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO mccs (code, description, category, risk_level)
+            VALUES ($1, $2, $3, $4)
             ON CONFLICT (code) DO UPDATE SET 
-              description = $3,
-              category = $4,
-              risk_level = $5
-          `, [uniqueId, mcc.code, mcc.description, mcc.category, mcc.risk_level]);
+              description = $2,
+              category = $3,
+              risk_level = $4
+          `, [mcc.code, mcc.description, mcc.category, mcc.risk_level]);
           
           console.log(`Successfully added MCC ${mcc.code}: ${mcc.description}`);
         } catch (err) {

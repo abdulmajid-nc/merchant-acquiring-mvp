@@ -259,15 +259,13 @@ function createModel(modelName, schema) {
       logger.log(`[${modelName}] FindById operation with id: ${id}`);
       
       try {
-        const sql = `SELECT * FROM ${tableName} WHERE id = $1 OR _id = $1 LIMIT 1`;
+        // Updated query to only use id column - removed _id reference
+        const sql = `SELECT * FROM ${tableName} WHERE id = $1 LIMIT 1`;
         const result = await pool.query(sql, [id]);
         
         if (result.rows.length > 0) {
           const row = result.rows[0];
-          // Convert id to _id for MongoDB compatibility if needed
-          if (row.id && !row._id) {
-            row._id = row.id;
-          }
+          // We no longer need to convert id to _id since we've removed the _id columns
           
           // Add populate method to support MongoDB-like population
           row.populate = function() {

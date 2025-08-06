@@ -164,7 +164,6 @@ async function seedMerchants(count = 100) {
         const status = Math.random() > 0.15 ? 'approved' : (Math.random() > 0.5 ? 'pending' : 'review');
         
         const merchant = {
-          _id: uniqueId,
           name,
           email: generateEmail(name),
           business_type: template.business_type,
@@ -184,10 +183,9 @@ async function seedMerchants(count = 100) {
       for (const merchant of batchMerchants) {
         await jpts.query(`
           INSERT INTO merchants 
-          (_id, name, email, business_type, status, address, contact, settlement_schedule, created_at, docs, archived)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          (name, email, business_type, status, address, contact, settlement_schedule, created_at, docs, archived)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `, [
-          merchant._id, 
           merchant.name, 
           merchant.email,
           merchant.business_type,
@@ -272,10 +270,9 @@ async function seedTerminals(count = 100, merchantCount) {
         const lastPing = status === 'active' ? 
           new Date(Date.now() - Math.floor(Math.random() * 24 * 60 * 60 * 1000)).toISOString() : null;
         
-        const uniqueId = `t_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        // No need for a unique ID string anymore
         
         const terminal = {
-          _id: uniqueId,
           serial,
           model,
           status,
@@ -290,10 +287,9 @@ async function seedTerminals(count = 100, merchantCount) {
       for (const terminal of batchTerminals) {
         await jpts.query(`
           INSERT INTO terminals 
-          (_id, serial, model, status, last_ping, merchant_id)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          (serial, model, status, last_ping, merchant_id)
+          VALUES ($1, $2, $3, $4, $5)
         `, [
-          terminal._id,
           terminal.serial,
           terminal.model,
           terminal.status,
