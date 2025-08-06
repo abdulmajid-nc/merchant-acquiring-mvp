@@ -199,7 +199,7 @@ function TerminalManagement() {
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">Terminals</h3>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-            {Array.isArray(terminals) ? terminals.length : 0} Total
+            {total} Total ({Array.isArray(terminals) ? terminals.length : 0} on this page)
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -281,7 +281,7 @@ function TerminalManagement() {
                           {t.id || t._id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {t.merchant}
+                          {t.merchantName || t.merchant || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <span title={t.serial} className="inline-block truncate max-w-[90px]">

@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Merchant = require('../models/Merchant');
+const { getModel } = require('../models/ModelSelector');
+const Merchant = getModel('Merchant');
 
 module.exports = {
   bulkCreate: (req, res) => {
@@ -58,10 +58,10 @@ module.exports = {
       const merchant = await Merchant.create(merchantData);
       
       // Create an audit log entry for the registration
-      const AuditLog = require('../models/AuditLog');
+      const AuditLog = getModel('AuditLog');
       await AuditLog.create({
         entity_type: 'merchant',
-        entity_id: merchant._id,
+        entity_id: merchant.id,
         action: 'register',
         user: 'system',
         details: {
@@ -73,7 +73,7 @@ module.exports = {
       
       res.json({ 
         message: 'Registration successful.', 
-        id: merchant._id,
+        id: merchant.id,
         status: merchant.status,
         name: merchant.name
       });
@@ -83,27 +83,51 @@ module.exports = {
     }
   },
   updateProfile: async (req, res) => {
-    const { id } = req.params;
-    const merchant = await Merchant.findByIdAndUpdate(id, req.body, { new: true });
-    res.json({ message: 'Profile updated.', merchant });
+    try {
+      const { id } = req.params;
+      const merchant = await Merchant.update(id, req.body);
+      res.json({ message: 'Profile updated.', merchant });
+    } catch (error) {
+      console.error('Error updating merchant profile:', error);
+      res.status(500).json({ error: 'Failed to update merchant profile' });
+    }
   },
   upgrade: async (req, res) => {
-    const { id } = req.params;
-    const merchant = await Merchant.findByIdAndUpdate(id, { tier: 'premium' }, { new: true });
-    res.json({ message: 'Upgraded to premium.', merchant });
+    try {
+      const { id } = req.params;
+      const merchant = await Merchant.update(id, { tier: 'premium' });
+      res.json({ message: 'Upgraded to premium.', merchant });
+    } catch (error) {
+      console.error('Error upgrading merchant:', error);
+      res.status(500).json({ error: 'Failed to upgrade merchant' });
+    }
   },
   reviewAccount: async (req, res) => {
-    // Basic risk flagging example
-    const merchantId = req.params.id;
-    // Simulate fetching merchant and running checks
-    // In real code, fetch from DB: const merchant = await Merchant.findById(merchantId);
-    const merchant = { id: merchantId, status: 'pending', email: 'test@example.com', docs: ['doc1'], business_type: 'retail' };
-    let flags = [];
-    if (!merchant.docs || merchant.docs.length === 0) flags.push('Missing documents');
-    if (merchant.status === 'pending') flags.push('Pending status');
-    if (!merchant.email.includes('@')) flags.push('Invalid email');
-    // Add more rules as needed
-    res.json({ merchantId, flags, riskLevel: flags.length === 0 ? 'low' : 'high' });
+    try {
+      // Basic risk flagging example
+      const merchantId = req.params.id;
+      // Fetch merchant from database
+      const merchant = await Merchant.findById(merchantId);
+      
+      if (!merchant) {
+        return res.status(404).json({ error: 'Merchant not found' });
+      }
+      
+      let flags = [];
+      if (!merchant.docs || merchant.docs.length === 0) flags.push('Missing documents');
+      if (merchant.status === 'pending') flags.push('Pending status');
+      if (!merchant.email.includes('@')) flags.push('Invalid email');
+      // Add more rules as needed
+      
+      res.json({ 
+        merchantId, 
+        flags, 
+        riskLevel: flags.length === 0 ? 'low' : 'high' 
+      });
+    } catch (error) {
+      console.error('Error reviewing merchant account:', error);
+      res.status(500).json({ error: 'Failed to review merchant account' });
+    }
   },
   list: async (req, res) => {
     console.log('GET request received for merchant list');
@@ -114,20 +138,24 @@ module.exports = {
       const skip = (page - 1) * limit;
 
       if (global.dbConnected) {
-        console.log('Using MongoDB for merchant list with pagination');
-        const total = await Merchant.countDocuments();
-        const merchants = await Merchant.find().skip(skip).limit(limit);
-        return res.json({
-          merchants,
-          total,
-          page,
-          pageSize: limit,
-          totalPages: Math.ceil(total / limit),
-          source: 'database'
-        });
+        console.log('Using database for merchant list with pagination');
+        try {
+          const result = await Merchant.find({}, page, limit, { created_at: 'DESC' });
+          return res.json({
+            merchants: result.merchants || [],
+            total: result.pagination ? result.pagination.total : 0,
+            page,
+            pageSize: limit,
+            totalPages: result.pagination ? result.pagination.pages : 0,
+            source: 'database'
+          });
+        } catch (err) {
+          console.error('Error in Merchant.find():', err);
+          throw err;
+        }
       }
 
-      // If not connected to MongoDB, use mock data
+      // If not connected to database, use mock data
       console.log('Using mock data for merchant list with pagination');
       const all = global.merchants || [];
       const total = all.length;
@@ -146,21 +174,66 @@ module.exports = {
     }
   },
   downgrade: async (req, res) => {
-    res.json({ message: 'Downgrade endpoint not yet implemented.' });
+    try {
+      const { id } = req.params;
+      const merchant = await Merchant.update(id, { tier: 'standard' });
+      res.json({ message: 'Downgraded to standard tier.', merchant });
+    } catch (error) {
+      console.error('Error downgrading merchant:', error);
+      res.status(500).json({ error: 'Failed to downgrade merchant' });
+    }
   },
   transferOwnership: async (req, res) => {
-    res.json({ message: 'Transfer ownership endpoint not yet implemented.' });
+    try {
+      // To be implemented
+      res.json({ message: 'Transfer ownership endpoint not yet implemented.' });
+    } catch (error) {
+      console.error('Error transferring ownership:', error);
+      res.status(500).json({ error: 'Failed to transfer ownership' });
+    }
   },
   addLocation: async (req, res) => {
-    res.json({ message: 'Add location endpoint not yet implemented.' });
+    try {
+      // To be implemented
+      res.json({ message: 'Add location endpoint not yet implemented.' });
+    } catch (error) {
+      console.error('Error adding location:', error);
+      res.status(500).json({ error: 'Failed to add location' });
+    }
   },
   closeAccount: async (req, res) => {
-    res.json({ message: 'Close account endpoint not yet implemented.' });
+    try {
+      const { id } = req.params;
+      await Merchant.update(id, { status: 'closed', closed_at: new Date() });
+      res.json({ message: 'Account closed successfully.' });
+    } catch (error) {
+      console.error('Error closing account:', error);
+      res.status(500).json({ error: 'Failed to close account' });
+    }
   },
   updateConfig: async (req, res) => {
-    res.json({ message: 'Update config endpoint not yet implemented.' });
+    try {
+      const { id } = req.params;
+      const merchant = await Merchant.update(id, { config: req.body.config });
+      res.json({ message: 'Configuration updated successfully.', merchant });
+    } catch (error) {
+      console.error('Error updating configuration:', error);
+      res.status(500).json({ error: 'Failed to update configuration' });
+    }
   },
   getProfile: async (req, res) => {
-    res.json({ message: 'Get profile endpoint not yet implemented.' });
+    try {
+      const { id } = req.params;
+      const merchant = await Merchant.findById(id);
+      
+      if (!merchant) {
+        return res.status(404).json({ error: 'Merchant not found' });
+      }
+      
+      res.json({ merchant });
+    } catch (error) {
+      console.error('Error fetching merchant profile:', error);
+      res.status(500).json({ error: 'Failed to fetch merchant profile' });
+    }
   }
 };

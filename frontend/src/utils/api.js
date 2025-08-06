@@ -49,256 +49,73 @@ export const API_ENDPOINTS = {
   
   // Applications
   APPLICATIONS: '/api/applications',
-  
-  // Merchant Pricing & Devices
-  MERCHANT: (id) => `/api/merchants/${id}`,
-  MERCHANT_PRICING: (id) => `/api/merchants/${id}/pricing`,
-  MERCHANT_DEVICES: (id) => `/api/merchants/${id}/devices`,
-  MERCHANT_ASSIGN_DEVICE: (id) => `/api/merchants/${id}/devices/assign`,
-  MERCHANT_REMOVE_DEVICE: (id) => `/api/merchants/${id}/devices/remove`,
+  APPLICATION_STEPS: (id) => `/api/applications/${id}/steps`,
+  APPLICATION_STATUS: (id) => `/api/applications/${id}/status`,
+  APPLICATION_DOCUMENTS: (id) => `/api/applications/${id}/documents`,
+  APPLICATION_DOCUMENT: (appId, docId) => `/api/applications/${appId}/documents/${docId}`,
   
   // Transactions
   TRANSACTIONS: '/api/transactions',
   TRANSACTION_BY_ID: (id) => `/api/transactions/${id}`,
-  TRANSACTION_STATUS: (id) => `/api/transactions/${id}/status`
+  TRANSACTION_STATUS: (id) => `/api/transactions/${id}/status`,
+  TRANSACTION_REFUND: (id) => `/api/transactions/${id}/refund`,
+  TRANSACTION_VOID: (id) => `/api/transactions/${id}/void`,
+  
+  // Analytics
+  ANALYTICS_DASHBOARD: '/api/analytics/dashboard',
+  ANALYTICS_TRANSACTIONS: '/api/analytics/transactions',
+  ANALYTICS_REVENUE: '/api/analytics/revenue',
+  
+  // User Management
+  USERS: '/api/users',
+  USER_BY_ID: (id) => `/api/users/${id}`,
+  USER_LOGIN: '/api/users/login',
+  USER_REGISTER: '/api/users/register',
+  USER_PROFILE: '/api/users/profile',
+  USER_PASSWORD_RESET: '/api/users/password-reset',
+  USER_VERIFY_EMAIL: '/api/users/verify-email',
+  USER_ROLES: '/api/users/roles',
+  USER_PERMISSIONS: '/api/users/permissions',
+  USER_ASSIGN_ROLE: (userId, roleId) => `/api/users/${userId}/roles/${roleId}`,
+  
+  // System
+  SYSTEM_HEALTH: '/api/system/health',
+  SYSTEM_LOGS: '/api/system/logs',
+  SYSTEM_CONFIG: '/api/system/config',
+  SYSTEM_VERSION: '/api/system/version',
+  
+  // Notifications
+  NOTIFICATIONS: '/api/notifications',
+  NOTIFICATION_READ: (id) => `/api/notifications/${id}/read`,
+  NOTIFICATION_MARK_ALL_READ: '/api/notifications/mark-all-read',
+  
+  // Pricing
+  MERCHANT_PRICING: '/api/merchantPricing',
+  
+  // Merchant pricing specific endpoints
+  PRICING_BY_MERCHANT: (merchantId) => `/api/merchantPricing/merchant/${merchantId}`,
+  PRICING_BY_ID: (id) => `/api/merchantPricing/${id}`,
+  PRICING_TEMPLATE_CREATE: '/api/merchantPricing/template',
+  PRICING_TEMPLATE_UPDATE: (id) => `/api/merchantPricing/template/${id}`,
+  PRICING_TEMPLATE_DELETE: (id) => `/api/merchantPricing/template/${id}`,
+  PRICING_TEMPLATES: '/api/merchantPricing/templates',
+  
+  // Test and Simulation
+  TEST_TRANSACTION: '/api/test/transaction',
+  SIMULATION_CONFIG: '/api/simulation/config',
+  
+  // File storage
+  FILE_UPLOAD: '/api/files/upload',
+  FILE_DOWNLOAD: (id) => `/api/files/${id}/download`,
+  FILE_DELETE: (id) => `/api/files/${id}/delete`
 };
 
-// Mock data for development when API is unavailable
-const MOCK_DATA = {
-  '/api/merchants': [
-    {
-      id: 1,
-      name: 'Acme Retail',
-      email: 'acme@retail.com',
-      business_type: 'retail',
-      docs: 'doc1,doc2',
-      status: 'approved',
-      created_at: '2025-07-28T07:35:43.560Z',
-      address: '123 Main St',
-      contact: '555-1234',
-      bank_accounts: [{ name: 'Primary', account: '1234567890' }],
-      catalog: [{ id: 1, name: 'Product 1' }],
-      archived: false,
-      settlement_schedule: 'weekly',
-      logo: '',
-      theme: '',
-      white_label: false,
-      terminals: [
-        { id: 1, serial: 'T1001', status: 'active' },
-        { id: 2, serial: 'T1002', status: 'inactive' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Best Eats',
-      email: 'info@besteats.com',
-      business_type: 'restaurant',
-      docs: 'docA,docB',
-      status: 'pending',
-      created_at: '2025-07-29T11:22:33.444Z'
-    }
-  ],
-  '/api/merchants/1': {
-    id: 1,
-    name: 'Acme Retail',
-    email: 'acme@retail.com',
-    business_type: 'retail',
-    docs: 'doc1,doc2',
-    status: 'approved',
-    created_at: '2025-07-28T07:35:43.560Z',
-    address: '123 Main St',
-    contact: '555-1234',
-    bank_accounts: [{ name: 'Primary', account: '1234567890' }],
-    catalog: [{ id: 1, name: 'Product 1' }],
-    archived: false,
-    settlement_schedule: 'weekly',
-    logo: '',
-    theme: '',
-    white_label: false,
-    terminals: [
-      { id: 1, serial: 'T1001', status: 'active' },
-      { id: 2, serial: 'T1002', status: 'inactive' }
-    ]
-  },
-  '/api/merchants/2': {
-    id: 2,
-    name: 'Best Eats',
-    email: 'info@besteats.com',
-    business_type: 'restaurant',
-    docs: 'docA,docB',
-    status: 'pending',
-    created_at: '2025-07-29T11:22:33.444Z'
-  },
-  '/api/terminals': [
-    { id: 1, merchant_id: 1, serial: 'T1001', model: 'PAX A80', status: 'active', last_ping: '2025-07-29T10:23:15Z' },
-    { id: 2, merchant_id: 1, serial: 'T1002', model: 'PAX A60', status: 'inactive', last_ping: '2025-07-25T16:45:22Z' },
-    { id: 3, merchant_id: 2, serial: 'T2001', model: 'Verifone V200c', status: 'active', last_ping: '2025-07-30T08:12:44Z' }
-  ],
-  '/api/terminals/1': {
-    id: 1, 
-    merchant_id: 1, 
-    serial: 'T1001', 
-    model: 'PAX A80', 
-    status: 'active', 
-    last_ping: '2025-07-29T10:23:15Z',
-    transaction_count: 3,
-    total_volume: 243.29,
-    config: {
-      receipt_header: 'Acme Retail',
-      receipt_footer: 'Thank you for shopping with us!',
-      timezone: 'America/New_York',
-      auto_settlement: true,
-      settlement_time: '23:00'
-    }
-  },
-  '/api/terminals/2': {
-    id: 2, 
-    merchant_id: 1, 
-    serial: 'T1002', 
-    model: 'PAX A60', 
-    status: 'inactive', 
-    last_ping: '2025-07-25T16:45:22Z',
-    transaction_count: 1,
-    total_volume: 22.50,
-    config: {
-      receipt_header: 'Acme Retail',
-      receipt_footer: 'Thank you for shopping with us!',
-      timezone: 'America/New_York',
-      auto_settlement: true,
-      settlement_time: '23:00'
-    }
-  },
-  '/api/terminals/3': {
-    id: 3, 
-    merchant_id: 2, 
-    serial: 'T2001', 
-    model: 'Verifone V200c', 
-    status: 'active', 
-    last_ping: '2025-07-30T08:12:44Z',
-    transaction_count: 2,
-    total_volume: 113.24,
-    config: {
-      receipt_header: 'Best Eats',
-      receipt_footer: 'Enjoy your meal!',
-      timezone: 'America/Chicago',
-      auto_settlement: true,
-      settlement_time: '22:00'
-    }
-  },
-  '/api/terminals/1/transactions': [
-    { id: 'txn_001', amount: 45.99, status: 'approved', timestamp: '2025-07-30T07:22:15Z', card_type: 'Visa', last_four: '4242' },
-    { id: 'txn_002', amount: 129.50, status: 'approved', timestamp: '2025-07-30T09:15:22Z', card_type: 'Mastercard', last_four: '5555' },
-    { id: 'txn_004', amount: 67.80, status: 'approved', timestamp: '2025-07-30T11:30:45Z', card_type: 'Visa', last_four: '1111' }
-  ],
-  '/api/terminals/2/transactions': [
-    { id: 'txn_005', amount: 22.50, status: 'declined', timestamp: '2025-07-25T14:22:10Z', card_type: 'Amex', last_four: '8888' }
-  ],
-  '/api/terminals/3/transactions': [
-    { id: 'txn_003', amount: 78.25, status: 'approved', timestamp: '2025-07-30T10:05:17Z', card_type: 'Mastercard', last_four: '9876' },
-    { id: 'txn_006', amount: 34.99, status: 'approved', timestamp: '2025-07-30T12:45:30Z', card_type: 'Visa', last_four: '4321' }
-  ],
-  '/api/terminals/1/suspend': { 
-    success: true, 
-    message: 'Terminal successfully suspended',
-    terminal: { 
-      id: 1, 
-      merchant_id: 1, 
-      serial: 'T1001', 
-      model: 'PAX A80', 
-      status: 'suspended', 
-      last_ping: '2025-07-29T10:23:15Z' 
-    }
-  },
-  '/api/terminals/1/activate': { 
-    success: true, 
-    message: 'Terminal successfully activated',
-    terminal: { 
-      id: 1, 
-      merchant_id: 1, 
-      serial: 'T1001', 
-      model: 'PAX A80', 
-      status: 'active', 
-      last_ping: '2025-07-30T12:34:56Z' 
-    }
-  },
-  '/api/mccs': [
-    { code: '5411', description: 'Grocery Stores, Supermarkets', risk_level: 'low' },
-    { code: '5812', description: 'Eating Places, Restaurants', risk_level: 'medium' },
-    { code: '5999', description: 'Miscellaneous and Specialty Retail Stores', risk_level: 'medium' }
-  ],
-  '/api/transactions': [
-    { id: 'txn_001', merchant_id: 1, terminal_id: 1, amount: 45.99, status: 'approved', timestamp: '2025-07-30T07:22:15Z' },
-    { id: 'txn_002', merchant_id: 1, terminal_id: 1, amount: 129.50, status: 'approved', timestamp: '2025-07-30T09:15:22Z' },
-    { id: 'txn_003', merchant_id: 2, terminal_id: 3, amount: 78.25, status: 'declined', timestamp: '2025-07-30T10:05:17Z' }
-  ]
-};
-
-// Function to get mock data based on endpoint
-const getMockData = (endpoint) => {
-  // Extract the base endpoint without query parameters
-  const baseEndpoint = endpoint.split('?')[0];
-  
-  // First check for exact match
-  if (MOCK_DATA[baseEndpoint]) {
-    return MOCK_DATA[baseEndpoint];
+// Simple request cache
+const cache = {};
+const clearCache = () => {
+  for (let key in cache) {
+    delete cache[key];
   }
-  
-  // Check for pattern matches like '/api/merchants/1'
-  if (baseEndpoint.match(/\/api\/merchants\/\d+$/)) {
-    const id = baseEndpoint.split('/').pop();
-    return MOCK_DATA[`/api/merchants/${id}`] || { error: 'Merchant not found' };
-  }
-  
-  // Check for pattern matches like '/api/terminals/1'
-  if (baseEndpoint.match(/\/api\/terminals\/\d+$/)) {
-    const id = baseEndpoint.split('/').pop();
-    return MOCK_DATA[`/api/terminals/${id}`] || { error: 'Terminal not found' };
-  }
-  
-  // Check for pattern matches like '/api/terminals/1/transactions'
-  if (baseEndpoint.match(/\/api\/terminals\/\d+\/transactions$/)) {
-    const id = baseEndpoint.split('/')[3]; // Get the terminal ID
-    return MOCK_DATA[`/api/terminals/${id}/transactions`] || { 
-      message: 'No transactions found for this terminal',
-      transactions: [] 
-    };
-  }
-  
-  // Check for terminal lifecycle actions like '/api/terminals/1/suspend'
-  if (baseEndpoint.match(/\/api\/terminals\/\d+\/(suspend|activate|deactivate|reset)$/)) {
-    const id = baseEndpoint.split('/')[3]; // Get the terminal ID
-    const action = baseEndpoint.split('/').pop(); // Get the action (suspend, activate, etc.)
-    
-    // Return the exact action if available
-    if (MOCK_DATA[`/api/terminals/${id}/${action}`]) {
-      return MOCK_DATA[`/api/terminals/${id}/${action}`];
-    }
-    
-    // Otherwise return a generic successful response
-    let newStatus = 'active';
-    if (action === 'suspend') newStatus = 'suspended';
-    if (action === 'deactivate') newStatus = 'inactive';
-    
-    return {
-      success: true,
-      message: `Terminal successfully ${action}d`,
-      terminal: {
-        id: parseInt(id),
-        merchant_id: id === '3' ? 2 : 1, // Assign appropriate merchant ID based on terminal
-        serial: `T${id}001`,
-        model: id === '3' ? 'Verifone V200c' : 'PAX A80',
-        status: newStatus,
-        last_ping: new Date().toISOString()
-      }
-    };
-  }
-  
-  // Return empty data if no mock available
-  return { 
-    message: 'No mock data available for this endpoint',
-    isMock: true, // Mark explicitly as mock data
-    endpoint: baseEndpoint // Include the endpoint for debugging
-  };
 };
 
 // Global flag to track if mock data is being used
@@ -313,88 +130,400 @@ export const setMockDataNotifier = (callback) => {
   notifyMockDataUsage = callback;
 };
 
-// Helper function for making fetch requests with proper error handling
-export const fetchApi = async (endpoint, options = {}) => {
-  const url = getApiUrl(endpoint);
-  console.log(`API Request to: ${url}`);
+export const clearApiCache = clearCache;
 
-  // Get token from localStorage (adjust key if your app uses a different one)
-  const token = localStorage.getItem('token');
+// Helper functions for URL construction
+export const buildUrl = (endpoint, params = {}) => {
+  // If endpoint already contains the full URL, return it
+  if (endpoint.startsWith('http')) return endpoint;
+  
+  // Handle ID replacement pattern if endpoint is a function (dynamic endpoint)
+  let url = typeof endpoint === 'function' ? endpoint(params.id) : endpoint;
+  
+  // Remove id from params if it was used in the URL
+  if (typeof endpoint === 'function' && params.id) {
+    const { id, ...restParams } = params;
+    params = restParams;
+  }
+  
+  // Add query parameters if any
+  const queryParams = [];
+  for (const key in params) {
+    if (params[key] !== undefined && params[key] !== null) {
+      queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`);
+    }
+  }
+  
+  if (queryParams.length > 0) {
+    url += `${url.includes('?') ? '&' : '?'}${queryParams.join('&')}`;
+  }
+  
+  return url;
+};
 
+// Mock data for development
+export const MOCK_DATA = {
+  '/api/merchants': {
+    merchants: [
+      {
+        id: 1,
+        name: 'Sample Merchant 1',
+        business_type: 'Retail',
+        contact_name: 'John Smith',
+        email: 'john@example.com',
+        phone: '123-456-7890',
+        status: 'active',
+        registration_date: '2023-01-15',
+        mcc: '5411',
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          state: 'CA',
+          zip: '12345',
+          country: 'USA'
+        }
+      },
+      {
+        id: 2,
+        name: 'Sample Merchant 2',
+        business_type: 'Online',
+        contact_name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: '987-654-3210',
+        status: 'pending',
+        registration_date: '2023-01-20',
+        mcc: '5499',
+        address: {
+          street: '456 Oak St',
+          city: 'Othertown',
+          state: 'NY',
+          zip: '67890',
+          country: 'USA'
+        }
+      }
+    ],
+    total: 2,
+    isMock: true
+  },
+  '/api/transactions': {
+    transactions: [
+      {
+        id: 'tx_123456',
+        amount: 125.00,
+        currency: 'USD',
+        status: 'approved',
+        created_at: '2023-01-15T12:30:45Z',
+        merchant_id: 1,
+        terminal_id: 'term_1',
+        payment_method: 'visa',
+        card_number_masked: '4***********1234',
+        payment_type: 'credit',
+        response_code: '00',
+        response_message: 'Approved or completed successfully'
+      },
+      {
+        id: 'tx_789012',
+        amount: 75.50,
+        currency: 'USD',
+        status: 'approved',
+        created_at: '2023-01-15T14:45:22Z',
+        merchant_id: 2,
+        terminal_id: 'term_2',
+        payment_method: 'mastercard',
+        card_number_masked: '5***********5678',
+        payment_type: 'credit',
+        response_code: '00',
+        response_message: 'Approved or completed successfully'
+      },
+      {
+        id: 'tx_345678',
+        amount: 200.00,
+        currency: 'USD',
+        status: 'declined',
+        created_at: '2023-01-15T16:12:18Z',
+        merchant_id: 1,
+        terminal_id: 'term_1',
+        payment_method: 'amex',
+        card_number_masked: '3***********9012',
+        payment_type: 'credit',
+        response_code: '05',
+        response_message: 'Do not honor'
+      }
+    ],
+    total: 3,
+    isMock: true
+  },
+  '/api/mccs': {
+    mccs: [
+      { code: '5411', description: 'Grocery Stores, Supermarkets' },
+      { code: '5499', description: 'Miscellaneous Food Stores' },
+      { code: '5812', description: 'Eating Places, Restaurants' }
+    ],
+    isMock: true
+  },
+  '/api/terminals': {
+    terminals: [
+      {
+        id: 'term_1',
+        merchant_id: 1,
+        model: 'Verifone P400',
+        serial_number: 'VF1234567',
+        status: 'active',
+        location: 'Main Store',
+        ip_address: '192.168.1.101',
+        software_version: '4.3.1',
+        last_active: '2023-01-15T12:30:45Z'
+      },
+      {
+        id: 'term_2',
+        merchant_id: 2,
+        model: 'Ingenico iCT250',
+        serial_number: 'IC9876543',
+        status: 'active',
+        location: 'Checkout Counter',
+        ip_address: '192.168.2.102',
+        software_version: '8.2.5',
+        last_active: '2023-01-15T14:45:22Z'
+      }
+    ],
+    isMock: true
+  },
+  '/api/merchantPricing': {
+    pricing: [
+      {
+        id: 'price_1',
+        merchant_id: 1,
+        scheme: 'visa',
+        transaction_type: 'purchase',
+        fixed_fee: 0.30,
+        percentage_fee: 2.9,
+        effective_date: '2023-01-01',
+        expiry_date: null
+      },
+      {
+        id: 'price_2',
+        merchant_id: 1,
+        scheme: 'mastercard',
+        transaction_type: 'purchase',
+        fixed_fee: 0.30,
+        percentage_fee: 2.9,
+        effective_date: '2023-01-01',
+        expiry_date: null
+      }
+    ],
+    isMock: true
+  }
+};
+
+// Function to generate consistent structured mock data
+export const getMockData = (endpoint) => {
+  // Normalize the endpoint to remove query parameters
+  const baseEndpoint = endpoint.split('?')[0];
+  
+  // Try to get existing mock data for this endpoint
+  let mockData = MOCK_DATA[baseEndpoint];
+  
+  // If no exact match for the endpoint, check for dynamic endpoints
+  if (!mockData) {
+    // Check for pattern matching endpoints (like /api/merchants/123)
+    if (baseEndpoint.match(/\/api\/merchants\/\d+$/)) {
+      // This is a single merchant endpoint
+      const merchantId = parseInt(baseEndpoint.split('/').pop(), 10);
+      const allMerchants = MOCK_DATA['/api/merchants']?.merchants || [];
+      const merchant = allMerchants.find(m => m.id === merchantId);
+      
+      if (merchant) {
+        return { ...merchant, isMock: true };
+      }
+    } else if (baseEndpoint.match(/\/api\/transactions\/\w+$/)) {
+      // This is a single transaction endpoint
+      const transactionId = baseEndpoint.split('/').pop();
+      const allTransactions = MOCK_DATA['/api/transactions']?.transactions || [];
+      const transaction = allTransactions.find(t => t.id === transactionId);
+      
+      if (transaction) {
+        return { ...transaction, isMock: true };
+      }
+    } else if (baseEndpoint.match(/\/api\/terminals\/\w+$/)) {
+      // This is a single terminal endpoint
+      const terminalId = baseEndpoint.split('/').pop();
+      const allTerminals = MOCK_DATA['/api/terminals']?.terminals || [];
+      const terminal = allTerminals.find(t => t.id === terminalId);
+      
+      if (terminal) {
+        return { ...terminal, isMock: true };
+      }
+    }
+    
+    // Generate fallback data for unknown endpoints
+    const fallbackData = {
+      message: `Mock data for ${endpoint} is not available`,
+      status: 200,
+      isMock: true, // Mark explicitly as mock data
+      endpoint: baseEndpoint // Include the endpoint for debugging
+    };
+    
+    return fallbackData;
+  }
+  
+  // For merchants endpoint
+  if (baseEndpoint.startsWith('/api/merchants')) {
+    if (Array.isArray(mockData)) {
+      console.log('Wrapping mock merchant array in proper structure');
+      return { merchants: mockData, isMock: true };
+    } else if (mockData && mockData.merchants) {
+      return mockData;
+    }
+  }
+  
+  // Return data in the expected format based on the endpoint
+  return mockData || { 
+    status: 200,
+    statusText: 'OK (Mock)',
+    headers: {},
+    message: 'No mock data available',
+    isMock: true
+  };
+};
+
+// Main fetch function with error handling
+export async function fetchApi(endpoint, options = {}) {
+  // Use the base API URL directly instead of calling getApiUrl() without parameters
+  const apiUrl = API_BASE_URL || 'http://localhost:4000';
+  
+  // Normalize endpoint to ensure it starts with a slash
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${apiUrl}${normalizedEndpoint}`;
+  
+  console.log('API Request to:', url);
+  
   try {
-    // Add default headers if not provided, and include Authorization if token exists
+    // Add default headers
     const fetchOptions = {
       ...options,
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        ...(options.headers || {})
-      },
-      mode: 'cors'
+        ...options.headers || {}
+      }
     };
-
-    // Try to fetch from the actual API
+    
+    // Add auth token if available
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      fetchOptions.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(url, fetchOptions);
     
     if (!response.ok) {
-      console.error(`API Error: ${response.status} ${response.statusText} for ${url}`);
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
     
-    const data = await response.json();
-    console.log(`API Success from ${url}:`, data);
-    
-    // If we were previously using mock data, but now have a successful API call,
-    // update the notification
-    if (isUsingMockData && notifyMockDataUsage) {
-      isUsingMockData = false;
-      notifyMockDataUsage(false);
+    // Handle empty responses (like for DELETE operations)
+    if (response.status === 204) {
+      // Notify the application that real data is being used
+      if (notifyMockDataUsage && typeof notifyMockDataUsage === 'function') {
+        notifyMockDataUsage(false, endpoint);
+      }
+      return { status: response.status, success: true };
     }
     
-    return data;
+    // Notify the application that real data is being used
+    if (notifyMockDataUsage && typeof notifyMockDataUsage === 'function') {
+      notifyMockDataUsage(false, endpoint);
+    }
+    
+    return await response.json();
   } catch (error) {
     console.error(`API request to ${url} failed:`, error);
     
-    // If fetch fails (e.g., backend is down), use mock data for development
-    console.log(`Using mock data for ${endpoint}`);
+    // Check if this is a network error (server down/unreachable) vs server error (500)
+    const isNetworkError = error.message && (
+      error.message.includes('Failed to fetch') || 
+      error.message.includes('NetworkError') ||
+      error.message.includes('Network request failed') ||
+      error.message.includes('net::ERR_CONNECTION_REFUSED')
+    );
+    
+    // Get mock data for fallback
     const mockData = getMockData(endpoint);
     
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    // Add isMock flag to the mockData if it doesn't already have one
-    if (typeof mockData === 'object' && mockData !== null) {
-      mockData.isMock = true;
+    // Add error information to the mock data
+    if (mockData) {
+      mockData.backendError = true;
+      mockData.errorMessage = error.message;
+      mockData.errorType = isNetworkError ? 'network' : 'server';
+      
+      if (isNetworkError) {
+        console.log(`Backend unavailable for ${endpoint}, using mock data instead`);
+      } else {
+        console.log(`Backend returned error for ${endpoint}, using mock data with error flag`);
+      }
+      
+      // Notify the application that mock data is being used
+      if (notifyMockDataUsage && typeof notifyMockDataUsage === 'function') {
+        notifyMockDataUsage(true, endpoint);
+      }
+      
+      return mockData;
     }
     
-    // Update the global mock data status and notify if possible
-    if (!isUsingMockData && notifyMockDataUsage) {
-      isUsingMockData = true;
-      notifyMockDataUsage(true);
-    }
-    
-    // Return data in the expected format based on the endpoint
-    return { 
-      data: mockData,
-      status: 200,
-      statusText: 'OK (Mock)',
-      headers: {},
-      isMock: true
-    };
+    // If no mock data is available, rethrow the error
+    throw error;
   }
-};
+}
 
 // Common fetch methods
 export const api = {
   get: async (endpoint) => {
-    const result = await fetchApi(endpoint);
-    // If the result is from a mock, just return the data directly
-    if (result && result.isMock) {
-      console.log(`Returning mock data for GET ${endpoint}:`, result.data);
-      return result.data;
+    try {
+      const result = await fetchApi(endpoint);
+      
+      // If the result is from a mock
+      if (result && result.isMock) {
+        // For transactions endpoint, handle special case
+        if (endpoint.startsWith('/api/transactions') && result.transactions) {
+          console.log(`Returning mock transaction data for GET ${endpoint}:`, result.transactions.length, 'transactions');
+          return result;
+        }
+        
+        console.log(`Returning mock data for GET ${endpoint}:`, result);
+        return result;
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`Error in api.get for ${endpoint}:`, error);
+      
+      // For transactions endpoint, try to return fallback mock data
+      if (endpoint.startsWith('/api/transactions')) {
+        const fallbackData = getMockData('/api/transactions');
+        if (fallbackData) {
+          fallbackData.backendError = true;
+          fallbackData.errorMessage = error.message;
+          console.log('Returning fallback transaction data with error info:', fallbackData);
+          return fallbackData;
+        }
+      }
+      
+      // For merchants endpoint, try to return fallback mock data
+      if (endpoint.startsWith('/api/merchants')) {
+        const fallbackData = getMockData('/api/merchants');
+        if (fallbackData) {
+          fallbackData.backendError = true;
+          fallbackData.errorMessage = error.message;
+          console.log('Returning fallback merchant data with error info:', fallbackData);
+          return fallbackData;
+        }
+      }
+      
+      // For other endpoints or if no fallback is available
+      return {
+        backendError: true,
+        errorMessage: error.message,
+        isMock: true
+      };
     }
-    return result;
   },
   
   post: async (endpoint, data) => {
@@ -407,8 +536,8 @@ export const api = {
     });
     // If the result is from a mock, just return the data directly
     if (result && result.isMock) {
-      console.log(`Returning mock data for POST ${endpoint}:`, result.data);
-      return result.data;
+      console.log(`Returning mock data for POST ${endpoint}:`, result);
+      return result;
     }
     return result;
   },

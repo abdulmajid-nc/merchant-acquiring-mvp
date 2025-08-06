@@ -1,6 +1,135 @@
 import React, { useState, useEffect } from 'react';
 import api, { API_ENDPOINTS } from './utils/api';
 
+// Function to provide fallback transaction data when API fails
+const getFallbackTransactions = () => {
+  return [
+    { 
+      id: 'tx1011', 
+      merchant_name: 'Acme Retail', 
+      terminal_id: 'POS-1001', 
+      created_at: '2025-08-05T15:45:22Z', 
+      amount: 120.50, 
+      currency: 'USD',
+      status: 'approved',
+      card_scheme: 'Visa',
+      masked_pan: '****4242',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1012', 
+      merchant_name: 'Acme Retail', 
+      terminal_id: 'POS-1001', 
+      created_at: '2025-08-05T14:30:15Z', 
+      amount: 75.00, 
+      currency: 'USD',
+      status: 'pending',
+      card_scheme: 'Mastercard',
+      masked_pan: '****5555',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1021', 
+      merchant_name: 'Best Eats', 
+      terminal_id: 'POS-2001', 
+      created_at: '2025-08-05T13:22:47Z', 
+      amount: 45.75,
+      currency: 'USD', 
+      status: 'approved',
+      card_scheme: 'Visa',
+      masked_pan: '****1234',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1022', 
+      merchant_name: 'Tech World', 
+      terminal_id: 'POS-3001', 
+      created_at: '2025-08-05T11:15:30Z', 
+      amount: 350.00,
+      currency: 'USD', 
+      status: 'approved',
+      card_scheme: 'Amex',
+      masked_pan: '****7890',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1023', 
+      merchant_name: 'Best Eats', 
+      terminal_id: 'POS-2001', 
+      created_at: '2025-08-05T09:50:22Z', 
+      amount: 28.50,
+      currency: 'USD', 
+      status: 'declined',
+      card_scheme: 'Mastercard',
+      masked_pan: '****9876',
+      transaction_type: 'purchase',
+      response_code: '05'
+    },
+    { 
+      id: 'tx1024', 
+      merchant_name: 'Coffee Shop', 
+      terminal_id: 'POS-4001', 
+      created_at: '2025-08-05T08:25:10Z', 
+      amount: 12.75,
+      currency: 'USD', 
+      status: 'approved',
+      card_scheme: 'Visa',
+      masked_pan: '****5678',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1025', 
+      merchant_name: 'Quick Grocery', 
+      terminal_id: 'POS-5001', 
+      created_at: '2025-08-04T19:40:33Z', 
+      amount: 65.30,
+      currency: 'USD', 
+      status: 'approved',
+      card_scheme: 'Mastercard',
+      masked_pan: '****2345',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1026', 
+      merchant_name: 'Tech World', 
+      terminal_id: 'POS-3002', 
+      created_at: '2025-08-04T17:55:48Z', 
+      amount: 199.99,
+      currency: 'USD', 
+      status: 'refunded',
+      card_scheme: 'Visa',
+      masked_pan: '****3456',
+      transaction_type: 'refund',
+      original_transaction: 'tx1017'
+    },
+    { 
+      id: 'tx1027', 
+      merchant_name: 'Pharmacy Plus', 
+      terminal_id: 'POS-6001', 
+      created_at: '2025-08-04T16:20:11Z', 
+      amount: 43.25,
+      currency: 'USD', 
+      status: 'approved',
+      card_scheme: 'Discover',
+      masked_pan: '****4567',
+      transaction_type: 'purchase'
+    },
+    { 
+      id: 'tx1028', 
+      merchant_name: 'Quick Grocery', 
+      terminal_id: 'POS-5002', 
+      created_at: '2025-08-04T14:10:55Z', 
+      amount: 22.45,
+      currency: 'USD', 
+      status: 'voided',
+      card_scheme: 'Visa',
+      masked_pan: '****6789',
+      transaction_type: 'void',
+      original_transaction: 'tx1020'
+    }
+  ];
+};
+
 function AdminPanel() {
   const [notification, setNotification] = useState({ type: '', message: '' });
   const [merchants, setMerchants] = useState([]);
@@ -57,24 +186,132 @@ function AdminPanel() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch merchants for other functionalities if needed
-        const merchantsData = await api.get(API_ENDPOINTS.MERCHANTS);
-        setMerchants(Array.isArray(merchantsData.merchants) ? merchantsData.merchants : []);
+        // Try to fetch merchants for other functionalities if needed
+        try {
+          const merchantsData = await api.get(API_ENDPOINTS.MERCHANTS);
+          if (merchantsData && merchantsData.merchants) {
+            setMerchants(Array.isArray(merchantsData.merchants) ? merchantsData.merchants : []);
+            console.log('Successfully loaded merchant data from backend');
+          } else if (merchantsData && Array.isArray(merchantsData)) {
+            // Handle case where mock data is returned as an array directly
+            setMerchants(merchantsData);
+            console.log('Using mock merchant data (array format)');
+          }
+        } catch (merchantError) {
+          console.error('Error fetching merchants:', merchantError);
+          
+          // Check if we have mock data with error information
+          if (merchantError.mockData) {
+            if (merchantError.mockData.backendError && merchantError.mockData.errorType === 'server') {
+              showError(`Backend error: ${merchantError.mockData.errorMessage || 'Unable to load merchant data'}. Please check server logs.`);
+            } else if (merchantError.mockData.errorType === 'network') {
+              // For network errors, silently use mock data without notification
+              console.log('Network error detected, silently using mock merchant data');
+            }
+            
+            // Use the mock data attached to the error
+            if (merchantError.mockData.merchants) {
+              setMerchants(merchantError.mockData.merchants);
+              console.log('Using mock merchants from error object:', merchantError.mockData.merchants.length);
+            } else if (Array.isArray(merchantError.mockData)) {
+              // Handle array format
+              setMerchants(merchantError.mockData);
+              console.log('Using mock merchants (array format) from error object:', merchantError.mockData.length);
+            } else {
+              setMerchants([]);
+            }
+          } else {
+            // If no mock data in error, show error and use empty array
+            showError('Error loading merchant data. Please try again later.');
+            setMerchants([]);
+          }
+        }
         
         // Fetch transactions from the transactions API endpoint
         try {
+          // Fetch the most recent transactions
           const transactionData = await api.get(API_ENDPOINTS.TRANSACTIONS);
-          setTransactions(Array.isArray(transactionData.transactions) ? transactionData.transactions : []);
+          console.log('Raw transaction data:', transactionData);
+          
+          if (transactionData && transactionData.transactions && Array.isArray(transactionData.transactions)) {
+            // Process transactions from API response
+            const processedTransactions = transactionData.transactions.map(tx => ({
+              ...tx,
+              merchant_name: tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant),
+              terminal_id: tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal),
+              status: tx.status || 'pending',
+              created_at: tx.created_at || tx.timestamp || new Date().toISOString()
+            }));
+            
+            setTransactions(processedTransactions);
+            console.log('Successfully loaded transaction data from backend:', processedTransactions.length);
+          } else if (transactionData && Array.isArray(transactionData)) {
+            // Handle case where mock data is returned as an array directly
+            const processedTransactions = transactionData.map(tx => ({
+              ...tx,
+              merchant_name: tx.merchant_name || tx.merchant || 'Unknown',
+              terminal_id: tx.terminal_id || tx.terminal || 'Unknown',
+              status: tx.status || 'pending',
+              created_at: tx.created_at || tx.timestamp || new Date().toISOString()
+            }));
+            setTransactions(processedTransactions);
+            console.log('Using mock transaction data (array format):', processedTransactions.length);
+          } else if (transactionData && transactionData.isMock) {
+            console.log('Using mock transaction data from API layer');
+            if (transactionData.transactions) {
+              setTransactions(transactionData.transactions);
+            } else {
+              // Fallback to hardcoded data
+              const fallbackTransactions = getFallbackTransactions();
+              setTransactions(fallbackTransactions);
+            }
+          } else {
+            console.log('No valid transactions returned, using fallback mock data');
+            // Use our fallback data function
+            const fallbackTransactions = getFallbackTransactions();
+            setTransactions(fallbackTransactions);
+            console.log('Using fallback transactions:', fallbackTransactions.length);
+          }
         } catch (txError) {
-          console.log('Using mock transaction data instead');
-          // If transaction API fails, we'll use the mock data in the render method
+          console.error('Error fetching transactions:', txError);
+          
+          // Check if we have mock data with error information
+          if (txError.mockData) {
+            if (txError.mockData.backendError && txError.mockData.errorType === 'server') {
+              showError(`Backend error: ${txError.mockData.errorMessage || 'Unable to load transaction data'}. Please check server logs.`);
+            } else if (txError.mockData.errorType === 'network') {
+              // For network errors, silently use mock data without notification
+              console.log('Network error detected, silently using mock data');
+            }
+            
+            // Use the mock data attached to the error
+            if (txError.mockData.transactions) {
+              setTransactions(txError.mockData.transactions);
+              console.log('Using mock transactions from error object:', txError.mockData.transactions.length);
+            } else {
+              const fallbackTransactions = getFallbackTransactions();
+              setTransactions(fallbackTransactions);
+              console.log('Using fallback transactions:', fallbackTransactions.length);
+            }
+          } else {
+            // If no mock data in error, use default fallback
+            const fallbackTransactions = getFallbackTransactions();
+            setTransactions(fallbackTransactions);
+            console.log('Using fallback transactions as last resort:', fallbackTransactions.length);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        showError('Error loading dashboard data');
       }
     };
     
     fetchData();
+    
+    // Refresh data every 60 seconds for real-time updates
+    // Disabling refresh during development to avoid console errors
+    // const refreshInterval = setInterval(fetchData, 60000);
+    // return () => clearInterval(refreshInterval);
   }, []);
 
   // Function to check transaction status
@@ -421,7 +658,10 @@ function AdminPanel() {
       
       {/* Recent Transactions */}
       <section className="bg-white rounded-xl shadow p-6 border border-gray-100 mb-8 transition-shadow hover:shadow-md">
-        <h5 className="text-lg font-bold mb-4">Recent Transactions</h5>
+        <div className="flex justify-between items-center mb-4">
+          <h5 className="text-lg font-bold">Recent Transactions</h5>
+          <div className="text-sm text-blue-600 hover:underline cursor-pointer">View All</div>
+        </div>
         <div className="overflow-x-auto rounded-lg border border-gray-100">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -429,60 +669,119 @@ function AdminPanel() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terminal</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {transactions.length > 0 ? (
-                transactions.map(tx => (
-                  <tr key={tx.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal_id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(tx.timestamp || tx.created_at).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${parseFloat(tx.amount).toFixed(2)}</td>
+              {transactions && transactions.length > 0 ? (
+                transactions.slice(0, 10).map(tx => (
+                  <tr key={tx._id || tx.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">
+                      {tx._id || tx.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant) || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal) || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(tx.timestamp || tx.created_at).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      ${parseFloat(tx.amount).toFixed(2)} {tx.currency || 'USD'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {tx.card_scheme || '-'} {tx.masked_pan ? (tx.masked_pan.includes('*') ? tx.masked_pan : '••••' + tx.masked_pan.slice(-4)) : ''}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        tx.status === 'completed' ? 'bg-green-500 text-white' : 
-                        tx.status === 'pending' ? 'bg-yellow-500 text-white' : 
+                        (tx.status === 'completed' || tx.status === 'approved') ? 'bg-green-500 text-white' : 
+                        (tx.status === 'pending') ? 'bg-yellow-500 text-white' : 
+                        (tx.status === 'voided') ? 'bg-gray-500 text-white' :
+                        (tx.status === 'refunded') ? 'bg-blue-500 text-white' :
                         'bg-red-500 text-white'
                       }`}>
                         {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button 
+                        className="text-gray-600 hover:text-blue-600 mr-2"
+                        title="View Details"
+                        onClick={() => alert(`View details for transaction ${tx._id || tx.id}`)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 /* Mock transaction data if API returns empty */
-                [
-                  { id: 'tx1011', merchant: 'Acme Retail', terminal: 'POS-1001', date: '2025-07-27', amount: 120.50, status: 'Completed' },
-                  { id: 'tx1012', merchant: 'Acme Retail', terminal: 'POS-1001', date: '2025-07-27', amount: 75.00, status: 'Pending' },
-                  { id: 'tx1021', merchant: 'Best Eats', terminal: 'POS-2001', date: '2025-07-26', amount: 45.75, status: 'Completed' },
-                  { id: 'tx1022', merchant: 'Tech World', terminal: 'POS-3001', date: '2025-07-26', amount: 350.00, status: 'Completed' },
-                  { id: 'tx1023', merchant: 'Best Eats', terminal: 'POS-2001', date: '2025-07-25', amount: 28.50, status: 'Declined' }
-                ].map(tx => (
+                getFallbackTransactions().map(tx => (
                   <tr key={tx.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.date}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${tx.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">{tx.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant_name || tx.merchant}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal_id || tx.terminal}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(tx.created_at || tx.timestamp).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${parseFloat(tx.amount).toFixed(2)} {tx.currency}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {tx.card_scheme} {tx.masked_pan ? (tx.masked_pan.includes('*') ? tx.masked_pan : '••••' + tx.masked_pan.slice(-4)) : ''}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        tx.status === 'Completed' ? 'bg-green-500 text-white' : 
-                        tx.status === 'Pending' ? 'bg-yellow-500 text-white' : 
+                        tx.status === 'approved' ? 'bg-green-500 text-white' : 
+                        tx.status === 'pending' ? 'bg-yellow-500 text-white' :
+                        tx.status === 'voided' ? 'bg-gray-500 text-white' :
+                        tx.status === 'refunded' ? 'bg-blue-500 text-white' :
                         'bg-red-500 text-white'
                       }`}>
-                        {tx.status}
+                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button 
+                        className="text-gray-600 hover:text-blue-600 mr-2"
+                        title="View Details"
+                        onClick={() => alert(`View details for transaction ${tx.id}`)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+            Export Transactions
+          </button>
         </div>
       </section>
       

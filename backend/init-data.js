@@ -1,38 +1,43 @@
 
 // backend/init-data.js
-// Script to insert 1000+ mock merchants, terminals, and transactions into MongoDB
+// Script to insert 1000+ mock merchants, terminals, and transactions into PostgreSQL
 
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const jptsAdapter = require('./jpts-adapter');
+const jpts = jptsAdapter.init();
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/merchant-acquiring-mvp';
+// Table structures match PostgreSQL schema
+const merchantsTable = 'merchants';
+const terminalsTable = 'terminals';
+const transactionsTable = 'transactions';
 
-// Schemas
-const merchantSchema = new Schema({
-  name: String,
-  email: String,
-  business_type: String,
-  status: String,
-  created_at: Date
-});
-const terminalSchema = new Schema({
-  serial: String,
-  model: String,
-  status: String,
-  last_ping: Date
-});
-const transactionSchema = new Schema({
-  terminal: { type: Schema.Types.ObjectId, ref: 'Terminal' },
-  merchant: { type: Schema.Types.ObjectId, ref: 'Merchant' },
-  amount: Number,
-  status: String,
-  created_at: Date,
-  __v: { type: Number, default: 0 }
-});
+// Sample data structures
+const merchantData = {
+  name: '',
+  email: '',
+  business_type: '',
+  status: '',
+  created_at: null
+};
 
-const Merchant = mongoose.model('Merchant', merchantSchema);
-const Terminal = mongoose.model('Terminal', terminalSchema);
-const Transaction = mongoose.model('Transaction', transactionSchema);
+const terminalData = {
+  serial: '',
+  model: '',
+  status: '',
+  last_ping: null
+};
+
+const transactionData = {
+  terminal_id: null,
+  merchant_id: null,
+  amount: 0,
+  status: '',
+  created_at: null
+};
+
+// Create model interfaces
+const Merchant = jptsAdapter.createModel(merchantsTable);
+const Terminal = jptsAdapter.createModel(terminalsTable);
+const Transaction = jptsAdapter.createModel(transactionsTable);
 
 const statuses = ['approved', 'declined', 'pending', 'settled'];
 const businessTypes = [
@@ -58,11 +63,11 @@ function randomString(length) {
 }
 
 async function seedAllData() {
-  await mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  });
-  console.log('Connected to MongoDB');
+  if (!jpts.isConnected()) {
+    console.error('Failed to connect to PostgreSQL database');
+    process.exit(1);
+  }
+  console.log('Connected to PostgreSQL');
 
   // Uncomment to clear collections first:
   // await Merchant.deleteMany({});
@@ -139,10 +144,16 @@ async function seedAllData() {
       __v: 0
     });
   }
-  await Transaction.insertMany(txns);
+  // Use PostgreSQL batch insert
+  for (const tx of txns) {
+    await Transaction.insertOne(tx);
+  }
   console.log('Inserted 1000+ transactions');
 
-  await mongoose.disconnect();
+  // Close connection
+  if (jpts.disconnect) {
+    jpts.disconnect();
+  }
   console.log('Done!');
 }
 

@@ -1,9 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Use jPTS adapter for PostgreSQL database connection
+const jptsAdapter = require('./jpts-adapter');
 
 // Middleware
 app.use(bodyParser.json());
@@ -28,11 +30,58 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB Atlas or local MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/merchant-acquiring-mvp';
-
 // Initialize mock data in global scope for fallback
 global.dbConnected = false;
+
+// Initialize jPTS for PostgreSQL connection
+console.log('Initializing jPTS database connection');
+const jpts = jptsAdapter.init();
+
+// Try to check connection status immediately
+global.dbConnected = jpts.isConnected();
+  
+  if (global.dbConnected) {
+    console.log('Successfully connected to jPTS database');
+    
+    // Create models using jPTS adapter
+    console.log('Creating jPTS models for data access...');
+    global.models = {
+      Merchant: jptsAdapter.createModel('merchants'),
+      Terminal: jptsAdapter.createModel('terminals'),
+      Transaction: jptsAdapter.createModel('transactions'),
+      Mcc: jptsAdapter.createModel('mccs'),
+      AuditLog: jptsAdapter.createModel('audit_logs'),
+      Application: jptsAdapter.createModel('applications'),
+      ArchivedAccount: jptsAdapter.createModel('archived_accounts')
+    };
+    console.log('jPTS models created successfully');
+  } else {
+    console.log('Failed to connect to jPTS database, will try again shortly');
+    
+    // Check again after a short delay to allow connection to establish
+    setTimeout(() => {
+      global.dbConnected = jpts.isConnected();
+      
+      if (global.dbConnected) {
+        console.log('Successfully connected to jPTS database on second attempt');
+        
+        // Create models using jPTS adapter
+        console.log('Creating jPTS models for data access...');
+        global.models = {
+          Merchant: jptsAdapter.createModel('merchants'),
+          Terminal: jptsAdapter.createModel('terminals'),
+          Transaction: jptsAdapter.createModel('transactions'),
+          Mcc: jptsAdapter.createModel('mccs'),
+          AuditLog: jptsAdapter.createModel('audit_logs'),
+          Application: jptsAdapter.createModel('applications'),
+          ArchivedAccount: jptsAdapter.createModel('archived_accounts')
+        };
+        console.log('jPTS models created successfully');
+      } else {
+        console.log('Still failed to connect to jPTS database, will use mock data');
+      }
+    }, 3000);
+  }
 
 // Initialize mock data
 const initMockData = () => {
@@ -98,36 +147,18 @@ const initMockData = () => {
   console.log('Mock data initialized successfully');
 };
 
-// Function to connect to MongoDB with retry
-const connectWithRetry = () => {
-  console.log('Attempting to connect to MongoDB...');
-  mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000, // Reduce timeout to 5 seconds
-  })
-  .then(() => {
-    console.log('Connected to MongoDB successfully');
-    global.dbConnected = true;
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    console.log('Using in-memory data mode for development...');
+// Function to initialize the database
+const initDatabase = () => {
+  if (!global.dbConnected) {
+    console.log('jPTS connection not established, using mock data');
     initMockData();
-    
-    // Set up a health check to reconnect if MongoDB becomes available
-    setTimeout(() => {
-      if (!global.dbConnected) {
-        console.log('Checking if MongoDB is now available...');
-        mongoose.connection.close(); // Close any existing connections
-        connectWithRetry(); // Try to connect again
-      }
-    }, 30000); // Check every 30 seconds
-  });
+  } else {
+    console.log('jPTS database connection successful');
+  }
 };
 
-// Initial connection attempt
-connectWithRetry();
+// Initialize database
+initDatabase();
 
 // Import routes
 const merchantsRouter = require('./routes/merchants');
@@ -135,6 +166,7 @@ const terminalsRouter = require('./routes/terminals');
 const mccsRouter = require('./routes/mccs');
 const merchantPricingRouter = require('./routes/merchantPricing');
 const transactionsRouter = require('./routes/transactions');
+const tranlogsRouter = require('./routes/tranlogs');
 
 // Use routes
 app.use('/api/merchants', merchantsRouter);
@@ -142,6 +174,7 @@ app.use('/api/terminals', terminalsRouter);
 app.use('/api/mccs', mccsRouter);
 app.use('/api/merchant-pricing', merchantPricingRouter);
 app.use('/api/transactions', transactionsRouter);
+app.use('/api/tranlogs', tranlogsRouter);
 
 // Root route
 app.get('/', (req, res) => {
@@ -165,10 +198,10 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'UP',
     timestamp: new Date().toISOString(),
-    mongodb: {
+    database: {
+      type: 'PostgreSQL',
       connected: global.dbConnected,
-      connectionString: MONGO_URI.replace(/\/\/([^:]+):[^@]+@/, '//***:***@'), // Mask credentials
-      readyState: mongoose.connection.readyState
+      connectionDetails: jptsAdapter.getConnectionDetails()
     },
     mode: global.dbConnected ? 'database' : 'mock',
     mockData: {

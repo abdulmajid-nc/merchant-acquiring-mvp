@@ -1,20 +1,53 @@
-const Mcc = require('../models/Mcc');
+const { getModel } = require('../models/ModelSelector');
 
 // Get all MCCs
 exports.getAllMccs = async (req, res) => {
   try {
+    // Get pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    
     // Check if we're connected to the database
     if (global.dbConnected) {
-      console.log('Using MongoDB for MCCs list');
-      const mccs = await Mcc.find().sort({ code: 1 });
+      console.log('Using database for MCCs list');
+      
+      // Get Mcc model dynamically to ensure we have the latest connection
+      const Mcc = getModel('Mcc');
+      
+      if (!Mcc) {
+        throw new Error('Mcc model not available');
+      }
+      
+      // For jPTS adapter, find() doesn't support skip/limit directly
+      // So we need to handle pagination differently based on adapter type
+      let mccs;
+      let total;
+      
+      if (process.env.DB_TYPE === 'jpts') {
+        // For jPTS, get all records and handle pagination in memory
+        // This is not efficient for large datasets but works for MCCs which are limited
+        const allMccs = await Mcc.find();
+        total = allMccs.length;
+        mccs = allMccs.sort((a, b) => a.code.localeCompare(b.code)).slice(skip, skip + limit);
+      } else {
+        // For other database types
+        const result = await Mcc.findPaginated(skip, limit, {}, { sort: { code: 1 } });
+        mccs = result.data;
+        total = result.total;
+      }
+      
       return res.status(200).json({
         mccs,
-        total: mccs.length,
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
         source: 'database'
       });
     }
     
-    // If not connected to MongoDB, use mock data
+    // If not connected to database, use mock data
     console.log('Using mock data for MCCs list');
     
     // Make sure global.mccs exists
@@ -26,9 +59,16 @@ exports.getAllMccs = async (req, res) => {
       ];
     }
     
+    // Apply pagination to mock data
+    const total = global.mccs.length;
+    const mccs = global.mccs.slice(skip, skip + limit);
+    
     return res.status(200).json({
-      mccs: global.mccs,
-      total: global.mccs.length,
+      mccs,
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
       source: 'mock'
     });
   } catch (error) {
@@ -36,10 +76,19 @@ exports.getAllMccs = async (req, res) => {
     
     // If there's an error, provide mock data for development
     if (global.mccs) {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+      const total = global.mccs.length;
+      const mccs = global.mccs.slice(skip, skip + limit);
+      
       return res.status(200).json({
-        mccs: global.mccs,
-        total: global.mccs.length,
-        source: 'mock',
+        mccs,
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        source: 'mock (error fallback)',
         error: error.message
       });
     }
@@ -53,8 +102,15 @@ exports.getMccByCode = async (req, res) => {
   try {
     // Check if we're connected to the database
     if (global.dbConnected) {
-      console.log('Using MongoDB for MCC lookup');
-      const mcc = await Mcc.findOne({ code: req.params.code });
+      console.log('Using database for MCC lookup');
+      // Get Mcc model dynamically to ensure we have the latest connection
+      const Mcc = getModel('Mcc');
+      
+      if (!Mcc) {
+        throw new Error('Mcc model not available');
+      }
+      
+      const mcc = await Mcc.findOneByCode(req.params.code);
       
       if (!mcc) {
         return res.status(404).json({ message: 'MCC not found', source: 'database' });
@@ -66,7 +122,7 @@ exports.getMccByCode = async (req, res) => {
       });
     }
     
-    // If not connected to MongoDB, use mock data
+    // If not connected to database, use mock data
     console.log('Using mock data for MCC lookup');
     
     // Make sure global.mccs exists
@@ -110,8 +166,15 @@ exports.getMccByCode = async (req, res) => {
 // Create a new MCC
 exports.createMcc = async (req, res) => {
   try {
+    // Get Mcc model dynamically to ensure we have the latest connection
+    const Mcc = getModel('Mcc');
+    
+    if (!Mcc) {
+      throw new Error('Mcc model not available');
+    }
+    
     // Check if MCC already exists
-    const existingMcc = await Mcc.findOne({ code: req.body.code });
+    const existingMcc = await Mcc.findOneByCode(req.body.code);
     if (existingMcc) {
       return res.status(400).json({ message: 'MCC with this code already exists' });
     }
@@ -121,13 +184,14 @@ exports.createMcc = async (req, res) => {
       return res.status(400).json({ message: 'MCC code must be a 4-digit number' });
     }
     
-    const newMcc = new Mcc({
+    const mccData = {
       code: req.body.code,
       description: req.body.description,
-      category: req.body.category
-    });
+      category: req.body.category,
+      risk_level: req.body.risk_level || 'medium'
+    };
     
-    const savedMcc = await newMcc.save();
+    const savedMcc = await Mcc.create(mccData);
     res.status(201).json(savedMcc);
   } catch (error) {
     console.error('Error creating MCC:', error);
@@ -138,16 +202,19 @@ exports.createMcc = async (req, res) => {
 // Update an MCC
 exports.updateMcc = async (req, res) => {
   try {
+    // Get Mcc model dynamically to ensure we have the latest connection
+    const Mcc = getModel('Mcc');
+    
+    if (!Mcc) {
+      throw new Error('Mcc model not available');
+    }
+    
     // Validate that code is a 4-digit number if it's being updated
     if (req.body.code && !/^\d{4}$/.test(req.body.code)) {
       return res.status(400).json({ message: 'MCC code must be a 4-digit number' });
     }
     
-    const updatedMcc = await Mcc.findOneAndUpdate(
-      { code: req.params.code },
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
+    const updatedMcc = await Mcc.updateByCode(req.params.code, req.body);
     
     if (!updatedMcc) {
       return res.status(404).json({ message: 'MCC not found' });
@@ -163,7 +230,14 @@ exports.updateMcc = async (req, res) => {
 // Delete an MCC
 exports.deleteMcc = async (req, res) => {
   try {
-    const deletedMcc = await Mcc.findOneAndDelete({ code: req.params.code });
+    // Get Mcc model dynamically to ensure we have the latest connection
+    const Mcc = getModel('Mcc');
+    
+    if (!Mcc) {
+      throw new Error('Mcc model not available');
+    }
+    
+    const deletedMcc = await Mcc.deleteByCode(req.params.code);
     
     if (!deletedMcc) {
       return res.status(404).json({ message: 'MCC not found' });
