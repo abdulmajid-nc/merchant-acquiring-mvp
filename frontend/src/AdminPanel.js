@@ -240,7 +240,9 @@ function AdminPanel() {
               merchant_name: tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant),
               terminal_id: tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal),
               status: tx.status || 'pending',
-              created_at: tx.created_at || tx.timestamp || new Date().toISOString()
+              created_at: tx.created_at || tx.timestamp || new Date().toISOString(),
+              // Map card data from various possible field names
+              masked_pan: tx.masked_pan || tx.card_number || ''
             }));
             
             setTransactions(processedTransactions);
@@ -252,7 +254,9 @@ function AdminPanel() {
               merchant_name: tx.merchant_name || tx.merchant || 'Unknown',
               terminal_id: tx.terminal_id || tx.terminal || 'Unknown',
               status: tx.status || 'pending',
-              created_at: tx.created_at || tx.timestamp || new Date().toISOString()
+              created_at: tx.created_at || tx.timestamp || new Date().toISOString(),
+              // Map card data from various possible field names
+              masked_pan: tx.masked_pan || tx.card_number || ''
             }));
             setTransactions(processedTransactions);
             console.log('Using mock transaction data (array format):', processedTransactions.length);
@@ -702,7 +706,13 @@ function AdminPanel() {
                       ${parseFloat(tx.amount).toFixed(2)} {tx.currency || 'USD'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {tx.card_scheme || '-'} {tx.masked_pan ? (tx.masked_pan.includes('*') ? tx.masked_pan : '••••' + tx.masked_pan.slice(-4)) : ''}
+                      {tx.card_scheme || '-'} {
+                        tx.masked_pan ? 
+                          (tx.masked_pan.includes('*') ? tx.masked_pan : '••••' + tx.masked_pan.slice(-4)) : 
+                        tx.card_number ? 
+                          (tx.card_number.includes('*') ? tx.card_number : '••••' + tx.card_number.slice(-4)) :
+                        ''
+                      }
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs rounded-full ${

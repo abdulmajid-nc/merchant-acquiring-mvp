@@ -1,8 +1,17 @@
 
 // PostgreSQL model for Transaction
 const jptsAdapter = process.env.DB_TYPE === 'jpts' ? require('../jpts-adapter') : null;
+const { TRANSACTION_STATUSES, TRANSACTION_TYPES } = require('../constants');
 
 class TransactionModel {
+  // Make transaction statuses and types accessible from the model
+  static get STATUSES() {
+    return TRANSACTION_STATUSES;
+  }
+  
+  static get TYPES() {
+    return TRANSACTION_TYPES;
+  }
   // Make the adapter accessible for debugging
   static get jpts() {
     return jptsAdapter ? jptsAdapter.init() : null;

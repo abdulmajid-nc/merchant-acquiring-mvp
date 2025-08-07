@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const transactionsController = require('../controllers/transactionsController');
 
+// GET /api/transactions/statuses - Get available transaction statuses
+router.get('/statuses', transactionsController.getTransactionStatuses);
 
 // GET /api/transactions - Get all transactions
 router.get('/', transactionsController.getTransactions);

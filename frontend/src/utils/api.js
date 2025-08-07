@@ -43,6 +43,12 @@ export const API_ENDPOINTS = {
   TERMINAL_LIFECYCLE: (id, action) => `/api/terminals/${id}/${action}`,
   TERMINAL_LIMIT: (id) => `/api/terminals/${id}/limit`,
   
+  // Transactions
+  TRANSACTIONS: '/api/transactions',
+  TRANSACTION_BY_ID: (id) => `/api/transactions/${id}`,
+  TRANSACTION_STATUSES: '/api/transactions/statuses',
+  TRANSACTION_UPDATE_STATUS: (id) => `/api/transactions/${id}/status`,
+  
   // MCCs
   MCCS: '/api/mccs',
   MCC_BY_CODE: (code) => `/api/mccs/${code}`,
@@ -54,12 +60,7 @@ export const API_ENDPOINTS = {
   APPLICATION_DOCUMENTS: (id) => `/api/applications/${id}/documents`,
   APPLICATION_DOCUMENT: (appId, docId) => `/api/applications/${appId}/documents/${docId}`,
   
-  // Transactions
-  TRANSACTIONS: '/api/transactions',
-  TRANSACTION_BY_ID: (id) => `/api/transactions/${id}`,
-  TRANSACTION_STATUS: (id) => `/api/transactions/${id}/status`,
-  TRANSACTION_REFUND: (id) => `/api/transactions/${id}/refund`,
-  TRANSACTION_VOID: (id) => `/api/transactions/${id}/void`,
+  // Remove duplicate TRANSACTIONS endpoints that were added above
   
   // Analytics
   ANALYTICS_DASHBOARD: '/api/analytics/dashboard',

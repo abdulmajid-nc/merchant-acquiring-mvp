@@ -2,6 +2,7 @@ const { getModel } = require('../models/ModelSelector');
 const Transaction = getModel('Transaction');
 const Merchant = getModel('Merchant');
 const Terminal = getModel('Terminal');
+const { TRANSACTION_STATUSES, TRANSACTION_TYPES, STATUS_CATEGORIES } = require('../constants');
 
 // Get all transactions
 exports.getTransactions = async (req, res) => {
@@ -96,7 +97,7 @@ exports.createTransaction = async (req, res) => {
       merchant_id,
       amount,
       currency,
-      status: status || 'pending',
+      status: status || TRANSACTION_STATUSES.PENDING,
       transaction_type,
       reference,
       trace,
@@ -132,6 +133,21 @@ exports.updateTransactionStatus = async (req, res) => {
     res.json(transaction);
   } catch (error) {
     console.error('Error updating transaction:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get available transaction statuses and metadata
+exports.getTransactionStatuses = async (req, res) => {
+  try {
+    // Return all status information including UI categories
+    res.json({
+      statuses: TRANSACTION_STATUSES,
+      types: TRANSACTION_TYPES,
+      categories: STATUS_CATEGORIES
+    });
+  } catch (error) {
+    console.error('Error fetching transaction statuses:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
