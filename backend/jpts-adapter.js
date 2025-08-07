@@ -210,9 +210,9 @@ function createModel(modelName, schema) {
         const result = await pool.query(sql, values);
         
         const resultObject = result.rows.map(row => {
-          // Convert id to _id for MongoDB compatibility if needed
-          if (row.id && !row._id) {
-            row._id = row.id;
+          // Convert amount to number if it exists
+          if (row.amount) {
+            row.amount = parseFloat(row.amount);
           }
           return row;
         });
@@ -241,9 +241,9 @@ function createModel(modelName, schema) {
         
         if (result.rows.length > 0) {
           const row = result.rows[0];
-          // Convert id to _id for MongoDB compatibility if needed
-          if (row.id && !row._id) {
-            row._id = row.id;
+          // Convert amount to number if it exists
+          if (row.amount) {
+            row.amount = parseFloat(row.amount);
           }
           return row;
         }
@@ -259,13 +259,22 @@ function createModel(modelName, schema) {
       logger.log(`[${modelName}] FindById operation with id: ${id}`);
       
       try {
+        // Try to convert id to a number if it's a string
+        let idValue = id;
+        if (typeof id === 'string' && !isNaN(id)) {
+          idValue = parseInt(id, 10);
+        }
+        
         // Updated query to only use id column - removed _id reference
         const sql = `SELECT * FROM ${tableName} WHERE id = $1 LIMIT 1`;
-        const result = await pool.query(sql, [id]);
+        const result = await pool.query(sql, [idValue]);
         
         if (result.rows.length > 0) {
           const row = result.rows[0];
-          // We no longer need to convert id to _id since we've removed the _id columns
+          // Process numeric fields if they exist
+          if (row.amount) {
+            row.amount = parseFloat(row.amount);
+          }
           
           // Add populate method to support MongoDB-like population
           row.populate = function() {

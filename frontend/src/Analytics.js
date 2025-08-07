@@ -100,6 +100,13 @@ function Analytics() {
           console.warn('Unexpected response format for transactions:', response);
         }
         
+        // Process data to ensure all fields are safe to use
+        transactionsData = transactionsData.map(tx => ({
+          ...tx,
+          amount: typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0),
+          status: tx.status || 'Unknown'
+        }));
+        
         if (transactionsData.length > 0) {
           setTransactions(transactionsData);
           calculateMetrics(transactionsData);
@@ -414,7 +421,7 @@ function Analytics() {
                         <td className="px-4 py-2">{tx.merchant}</td>
                         <td className="px-4 py-2">{tx.terminal}</td>
                         <td className="px-4 py-2">{tx.date}</td>
-                        <td className="px-4 py-2">${tx.amount.toFixed(2)}</td>
+                        <td className="px-4 py-2">${(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0)).toFixed(2)}</td>
                         <td className="px-4 py-2">
                           <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${tx.status === 'Completed' ? 'bg-green-100 text-green-800' : tx.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
                             {tx.status}
@@ -424,15 +431,15 @@ function Analytics() {
                     ))
                   ) : (
                     transactions.map(tx => (
-                      <tr key={tx.id}>
-                        <td className="px-4 py-2">{tx.id}</td>
-                        <td className="px-4 py-2">{tx.merchant}</td>
-                        <td className="px-4 py-2">{tx.terminal}</td>
-                        <td className="px-4 py-2">{new Date(tx.created_at).toLocaleDateString()}</td>
-                        <td className="px-4 py-2">${tx.amount.toFixed(2)}</td>
+                      <tr key={tx.id || 'unknown'}>
+                        <td className="px-4 py-2">{tx.id || 'N/A'}</td>
+                        <td className="px-4 py-2">{tx.merchant || tx.merchant_id || 'N/A'}</td>
+                        <td className="px-4 py-2">{tx.terminal || tx.terminal_id || 'N/A'}</td>
+                        <td className="px-4 py-2">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A'}</td>
+                        <td className="px-4 py-2">${(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0)).toFixed(2)}</td>
                         <td className="px-4 py-2">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${tx.status === 'completed' ? 'bg-green-100 text-green-800' : tx.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                            {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                          <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${(tx.status || '').toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' : (tx.status || '').toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                            {tx.status ? tx.status.charAt(0).toUpperCase() + tx.status.slice(1) : 'Unknown'}
                           </span>
                         </td>
                       </tr>

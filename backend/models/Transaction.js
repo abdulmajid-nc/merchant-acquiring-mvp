@@ -73,7 +73,12 @@ class TransactionModel {
         console.log(`[DEBUG] SQL query result:`, result.rows);
         if (result.rows.length > 0) {
           console.log(`[DEBUG] Found transaction by numeric ID: ${numericId}`);
-          return result.rows[0];
+          // Convert amount to a number
+          const transaction = result.rows[0];
+          if (transaction.amount) {
+            transaction.amount = parseFloat(transaction.amount);
+          }
+          return transaction;
         } else {
           console.log(`[DEBUG] No transaction found with numeric ID: ${numericId}`);
         }
@@ -98,7 +103,12 @@ class TransactionModel {
         console.log(`[DEBUG] Reference search result:`, refResult.rows);
         if (refResult.rows.length > 0) {
           console.log(`[DEBUG] Found transaction by reference: ${id}`);
-          return refResult.rows[0];
+          // Convert amount to a number
+          const transaction = refResult.rows[0];
+          if (transaction.amount) {
+            transaction.amount = parseFloat(transaction.amount);
+          }
+          return transaction;
         } else {
           console.log(`[DEBUG] No transaction found with reference: ${id}`);
         }
@@ -151,8 +161,14 @@ class TransactionModel {
       // Execute the main query with pagination
       const result = await this.jpts.query(query, [limit, offset]);
       
+      // Convert amount field to number before sending to frontend
+      const processedRows = result.rows.map(row => ({
+        ...row,
+        amount: parseFloat(row.amount)
+      }));
+      
       return {
-        rows: result.rows,
+        rows: processedRows,
         total
       };
     } catch (error) {
@@ -203,7 +219,14 @@ class TransactionModel {
                      LIMIT $1 OFFSET $2`;
                      
       const result = await this.jpts.query(query, [limit, offset]);
-      return { rows: result.rows, total };
+      
+      // Convert amount field to number before sending to frontend
+      const processedRows = result.rows.map(row => ({
+        ...row,
+        amount: parseFloat(row.amount)
+      }));
+      
+      return { rows: processedRows, total };
     } catch (error) {
       console.error('Error finding transactions:', error);
       throw error;
@@ -241,8 +264,14 @@ class TransactionModel {
       const total = parseInt(countResult.rows[0].total);
       const totalPages = Math.ceil(total / limit);
       
+      // Convert amount to number
+      const processedRows = result.rows.map(row => ({
+        ...row,
+        amount: parseFloat(row.amount)
+      }));
+      
       return {
-        transactions: result.rows,
+        transactions: processedRows,
         pagination: {
           total,
           page,
