@@ -688,10 +688,10 @@ function AdminPanel() {
                       {tx._id || tx.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant) || 'Unknown'}
+                      {tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant) || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal) || 'Unknown'}
+                      {tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal) || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(tx.timestamp || tx.created_at).toLocaleString(undefined, {
@@ -706,13 +706,7 @@ function AdminPanel() {
                       ${parseFloat(tx.amount).toFixed(2)} {tx.currency || 'USD'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {tx.card_scheme || '-'} {
-                        tx.masked_pan ? 
-                          (tx.masked_pan.includes('*') ? tx.masked_pan : '••••' + tx.masked_pan.slice(-4)) : 
-                        tx.card_number ? 
-                          (tx.card_number.includes('*') ? tx.card_number : '••••' + tx.card_number.slice(-4)) :
-                        ''
-                      }
+                      {tx.masked_pan || tx.card_number || ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs rounded-full ${
@@ -744,8 +738,12 @@ function AdminPanel() {
                 getFallbackTransactions().map(tx => (
                   <tr key={tx.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">{tx.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant_name || tx.merchant}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal_id || tx.terminal}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant) || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal) || '-'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(tx.created_at || tx.timestamp).toLocaleString(undefined, {
                         year: 'numeric',
@@ -757,7 +755,7 @@ function AdminPanel() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${parseFloat(tx.amount).toFixed(2)} {tx.currency}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {tx.card_scheme} {tx.masked_pan ? (tx.masked_pan.includes('*') ? tx.masked_pan : '••••' + tx.masked_pan.slice(-4)) : ''}
+                      {tx.masked_pan || tx.card_number || ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs rounded-full ${
