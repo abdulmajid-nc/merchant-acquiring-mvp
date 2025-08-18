@@ -52,7 +52,11 @@ global.dbConnected = jpts.isConnected();
       Mcc: jptsAdapter.createModel('mccs'),
       AuditLog: jptsAdapter.createModel('audit_logs'),
       Application: jptsAdapter.createModel('applications'),
-      ArchivedAccount: jptsAdapter.createModel('archived_accounts')
+      ArchivedAccount: jptsAdapter.createModel('archived_accounts'),
+      FeeStructure: jptsAdapter.createModel('fee_structures'),
+      FeeRule: jptsAdapter.createModel('fee_rules'),
+      VolumeTier: jptsAdapter.createModel('volume_tiers'),
+      MerchantVolumeHistory: jptsAdapter.createModel('merchant_volume_history')
     };
     console.log('jPTS models created successfully');
   } else {
@@ -74,7 +78,11 @@ global.dbConnected = jpts.isConnected();
           Mcc: jptsAdapter.createModel('mccs'),
           AuditLog: jptsAdapter.createModel('audit_logs'),
           Application: jptsAdapter.createModel('applications'),
-          ArchivedAccount: jptsAdapter.createModel('archived_accounts')
+          ArchivedAccount: jptsAdapter.createModel('archived_accounts'),
+          FeeStructure: jptsAdapter.createModel('fee_structures'),
+          FeeRule: jptsAdapter.createModel('fee_rules'),
+          VolumeTier: jptsAdapter.createModel('volume_tiers'),
+          MerchantVolumeHistory: jptsAdapter.createModel('merchant_volume_history')
         };
         console.log('jPTS models created successfully');
       } else {
@@ -167,6 +175,7 @@ const mccsRouter = require('./routes/mccs');
 const merchantPricingRouter = require('./routes/merchantPricing');
 const transactionsRouter = require('./routes/transactions');
 const tranlogsRouter = require('./routes/tranlogs');
+const feesRouter = require('./routes/fees');
 
 // Use routes
 app.use('/api/merchants', merchantsRouter);
@@ -175,6 +184,7 @@ app.use('/api/mccs', mccsRouter);
 app.use('/api/merchant-pricing', merchantPricingRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/tranlogs', tranlogsRouter);
+app.use('/api/fees', feesRouter);
 
 // Root route
 app.get('/', (req, res) => {
@@ -185,7 +195,8 @@ app.get('/', (req, res) => {
       terminals: "/api/terminals",
       mccs: "/api/mccs",
       merchantPricing: "/api/merchant-pricing",
-      transactions: "/api/transactions"
+      transactions: "/api/transactions",
+      fees: "/api/fees"
     },
     version: "1.0.0",
     mode: global.dbConnected ? 'database' : 'mock',

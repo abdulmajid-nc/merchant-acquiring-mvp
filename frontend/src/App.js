@@ -13,6 +13,9 @@ import ApiDebugger from './ApiDebugger';
 import DirectApiTest from './DirectApiTest';
 import Analytics from './Analytics';
 import MockDataTester from './MockDataTester';
+import FeeStructureManagement from './FeeStructureManagement';
+import VolumeTierManagement from './VolumeTierManagement';
+import AssignFeeStructure from './AssignFeeStructure';
 
 import Layout from './Layout';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
@@ -57,6 +60,9 @@ function AppWithNotifications() {
         <Route path="/debug" element={<ApiDebugger />} />
         <Route path="/direct-test" element={<DirectApiTest />} />
         <Route path="/mock-test" element={<MockDataTester />} />
+        <Route path="/fee-structure-management" element={<FeeStructureManagement />} />
+        <Route path="/fee-structure/:id/volume-tiers" element={<VolumeTierManagement />} />
+        <Route path="/fee-structure/:id/assign" element={<AssignFeeStructure />} />
       </Routes>
     </>
   );

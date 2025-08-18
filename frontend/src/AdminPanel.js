@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api, { API_ENDPOINTS } from './utils/api';
+import TransactionTable from './components/TransactionTable';
+import TransactionStatusBadge from './components/TransactionStatusBadge';
+import StatusBadge from './components/StatusBadge';
+import StatsCard from './components/StatsCard';
+import { SYSTEM_STATUSES } from './constants/transactionConstants';
 
 // Function to provide fallback transaction data when API fails
 const getFallbackTransactions = () => {
@@ -162,17 +167,17 @@ function AdminPanel() {
   // System health status
   const [systemHealth, setSystemHealth] = useState({
     visa: {
-      status: 'Online',
+      status: SYSTEM_STATUSES.OPERATIONAL,
       latency: '45ms',
       uptime: '99.9%'
     },
     mastercard: {
-      status: 'Online',
+      status: SYSTEM_STATUSES.OPERATIONAL,
       latency: '52ms',
       uptime: '99.8%'
     },
     pciDss: {
-      status: 'Online',
+      status: SYSTEM_STATUSES.COMPLIANT,
       compliance: 'Security Standards'
     }
   });
@@ -364,27 +369,18 @@ function AdminPanel() {
       {/* Stats Cards */}
       <section aria-label="Dashboard Metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Total Revenue Card */}
-        <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
-          <div className="flex justify-between items-center mb-3">
-            <h6 className="text-gray-500 text-sm font-medium">Total Revenue</h6>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <StatsCard 
+          title="Total Revenue"
+          value={dashboardStats.revenue.value}
+          change={dashboardStats.revenue.change}
+          period={dashboardStats.revenue.period}
+          iconColor="text-green-600"
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-1">{dashboardStats.revenue.value}</h2>
-            <div className="flex items-center">
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                dashboardStats.revenue.change.startsWith('+') 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {dashboardStats.revenue.change}
-              </span>
-              <span className="text-gray-500 text-xs ml-2">{dashboardStats.revenue.period}</span>
-            </div>
-          </div>
-        </div>
+          }
+        />
         
         {/* Transactions Card */}
         <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
@@ -527,7 +523,11 @@ function AdminPanel() {
                   <span className="text-green-500 mr-2">●</span>
                   <span>VISA Network</span>
                 </div>
-                <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">{systemHealth.visa.status}</span>
+                <StatusBadge 
+                  status={systemHealth.visa.status} 
+                  size="sm" 
+                  highlight={true}
+                />
               </div>
               <div className="flex justify-between text-gray-500 text-xs mb-1">
                 <span>Authorization & Settlement</span>
@@ -546,7 +546,11 @@ function AdminPanel() {
                   <span className="text-green-500 mr-2">●</span>
                   <span>Mastercard Network</span>
                 </div>
-                <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">{systemHealth.mastercard.status}</span>
+                <StatusBadge 
+                  status={systemHealth.mastercard.status} 
+                  size="sm" 
+                  highlight={true}
+                />
               </div>
               <div className="flex justify-between text-gray-500 text-xs mb-1">
                 <span>Authorization & Settlement</span>
@@ -565,7 +569,11 @@ function AdminPanel() {
                   <span className="text-green-500 mr-2">●</span>
                   <span>PCI DSS Compliance</span>
                 </div>
-                <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">{systemHealth.pciDss.status}</span>
+                <StatusBadge 
+                  status={systemHealth.pciDss.status} 
+                  size="sm" 
+                  highlight={true}
+                />
               </div>
               <div className="text-gray-500 text-xs">Security Standards</div>
             </div>
@@ -640,21 +648,33 @@ function AdminPanel() {
                 <strong>tx1011</strong>
                 <div className="text-xs text-gray-500">2025-07-28 10:45 AM</div>
               </div>
-              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Completed</span>
+              <TransactionStatusBadge 
+                status="Approved" 
+                size="sm" 
+                highlight={true}
+              />
             </li>
             <li className="py-3 flex justify-between items-center">
               <div>
                 <strong>tx1012</strong>
                 <div className="text-xs text-gray-500">2025-07-28 09:30 AM</div>
               </div>
-              <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Pending</span>
+              <TransactionStatusBadge 
+                status="Pending" 
+                size="sm" 
+                highlight={true}
+              />
             </li>
             <li className="py-3 flex justify-between items-center">
               <div>
                 <strong>tx1023</strong>
                 <div className="text-xs text-gray-500">2025-07-27 05:15 PM</div>
               </div>
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">Declined</span>
+              <TransactionStatusBadge 
+                status="Declined" 
+                size="sm" 
+                highlight={true}
+              />
             </li>
           </ul>
         </div>
@@ -709,15 +729,7 @@ function AdminPanel() {
                       {tx.masked_pan || tx.card_number || ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        (tx.status === 'completed' || tx.status === 'approved') ? 'bg-green-500 text-white' : 
-                        (tx.status === 'pending') ? 'bg-yellow-500 text-white' : 
-                        (tx.status === 'voided') ? 'bg-gray-500 text-white' :
-                        (tx.status === 'refunded') ? 'bg-blue-500 text-white' :
-                        'bg-red-500 text-white'
-                      }`}>
-                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-                      </span>
+                      <TransactionStatusBadge status={tx.status} size="sm" />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button 

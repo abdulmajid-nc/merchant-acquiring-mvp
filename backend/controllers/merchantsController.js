@@ -137,8 +137,34 @@ module.exports = {
       
       console.log('Using database for merchant list with pagination');
       try {
+        // Also fetch fee structures for each merchant
         const result = await Merchant.find({}, page, limit, { created_at: 'DESC' });
         console.log(`Found ${result.merchants ? result.merchants.length : 0} merchants in database`);
+        
+        // Get fee structure information for each merchant
+        if (result.merchants && result.merchants.length > 0) {
+          const merchantsWithFeeInfo = await Promise.all(result.merchants.map(async (merchant) => {
+            if (merchant.fee_structure_id) {
+              try {
+                // Get fee structure details
+                const query = `
+                  SELECT * FROM fee_structures
+                  WHERE id = $1
+                `;
+                
+                const feeResult = await Merchant.jpts.query(query, [merchant.fee_structure_id]);
+                if (feeResult.rows.length > 0) {
+                  merchant.feeStructure = feeResult.rows[0];
+                }
+              } catch (feeErr) {
+                console.error(`Error fetching fee structure for merchant ${merchant.id}:`, feeErr);
+              }
+            }
+            return merchant;
+          }));
+          
+          result.merchants = merchantsWithFeeInfo;
+        }
         
         return res.json({
           merchants: result.merchants || [],

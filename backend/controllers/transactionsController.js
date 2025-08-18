@@ -69,6 +69,8 @@ exports.getTransactionById = async (req, res) => {
   }
 };
 
+const transactionService = require('../services/transactionService');
+
 // Create a new transaction
 exports.createTransaction = async (req, res) => {
   try {
@@ -111,7 +113,8 @@ exports.createTransaction = async (req, res) => {
       created_at: new Date()
     };
     
-    const newTransaction = await Transaction.create(transactionData);
+    // Use transaction service to create transaction with fee calculation
+    const newTransaction = await transactionService.createTransaction(transactionData);
     res.status(201).json(newTransaction);
   } catch (error) {
     console.error('Error creating transaction:', error);

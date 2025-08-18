@@ -24,6 +24,8 @@ function aggregateToWeeks(data) {
 import React, { useState, useEffect } from 'react';
 import api, { API_ENDPOINTS } from './utils/api';
 import TransactionStatusBadge from './components/TransactionStatusBadge';
+import TransactionTable from './components/TransactionTable';
+import StatsCard from './components/StatsCard';
 import { TRANSACTION_STATUSES } from './constants/transactionConstants';
 
 function Analytics() {
@@ -227,30 +229,30 @@ function Analytics() {
 
       {/* Metrics Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-10">
-        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
-          <span className="text-gray-500 text-xs mb-1">Total Revenue</span>
-          <span className="text-2xl font-bold">{metrics.totalRevenue}</span>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
-          <span className="text-gray-500 text-xs mb-1">Transactions</span>
-          <span className="text-2xl font-bold">{metrics.transactionCount}</span>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
-          <span className="text-gray-500 text-xs mb-1">Average Value</span>
-          <span className="text-2xl font-bold">{metrics.averageTransaction}</span>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
-          <span className="text-gray-500 text-xs mb-1">Success Rate</span>
-          <span className="text-2xl font-bold">{metrics.successRate}</span>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
-          <span className="text-gray-500 text-xs mb-1">Top Terminal</span>
-          <span className="text-2xl font-bold">{metrics.mostActiveTerminal}</span>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-start border border-gray-100">
-          <span className="text-gray-500 text-xs mb-1">Top Merchant</span>
-          <span className="text-2xl font-bold">{metrics.topMerchant}</span>
-        </div>
+        <StatsCard 
+          title="Total Revenue"
+          value={metrics.totalRevenue}
+        />
+        <StatsCard 
+          title="Transactions"
+          value={metrics.transactionCount}
+        />
+        <StatsCard 
+          title="Average Value"
+          value={metrics.averageTransaction}
+        />
+        <StatsCard 
+          title="Success Rate"
+          value={metrics.successRate}
+        />
+        <StatsCard 
+          title="Top Terminal"
+          value={metrics.mostActiveTerminal}
+        />
+        <StatsCard 
+          title="Top Merchant"
+          value={metrics.topMerchant}
+        />
       </section>
 
       {/* Charts */}
@@ -404,89 +406,82 @@ function Analytics() {
       </div>
 
       {/* Recent Transactions */}
-      <div className="mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
-            <h5 className="font-bold mb-0">Recent Transactions</h5>
-            <a href="#" className="text-blue-600 hover:underline text-sm">View All</a>
-          </div>
+      <section className="bg-white rounded-xl shadow p-6 border border-gray-100 mb-8 transition-shadow hover:shadow-md">
+        <div className="flex justify-between items-center mb-4">
+          <h5 className="text-lg font-bold">Recent Transactions</h5>
+          <div className="text-sm text-blue-600 hover:underline cursor-pointer">View All</div>
+        </div>
           
-          {loading ? (
-            <div className="text-center py-5">
-              <svg className="animate-spin h-6 w-6 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-              <p className="mt-2 text-gray-500">Loading transaction data...</p>
-            </div>
-          ) : error ? (
-            <div className="bg-red-100 text-red-700 rounded px-4 py-2 mb-4">{error}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terminal</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {transactions.length === 0 ? (
-                    // Mock data since we don't have real transactions yet
-                    [
-                      { id: 'tx1011', merchant: 'Acme Retail', terminal: 'POS-1001', date: '2025-07-27', amount: 120.50, status: 'Completed', masked_pan: '****-****-****-1234' },
-                      { id: 'tx1012', merchant: 'Acme Retail', terminal: 'POS-1001', date: '2025-07-27', amount: 75.00, status: 'Pending', masked_pan: '****-****-****-5678' },
-                      { id: 'tx1021', merchant: 'Best Eats', terminal: 'POS-2001', date: '2025-07-26', amount: 45.75, status: 'Completed', masked_pan: '****-****-****-9012' },
-                      { id: 'tx1022', merchant: 'Tech World', terminal: 'POS-3001', date: '2025-07-26', amount: 350.00, status: 'Completed', masked_pan: '****-****-****-3456' },
-                      { id: 'tx1023', merchant: 'Best Eats', terminal: 'POS-2001', date: '2025-07-25', amount: 28.50, status: 'Declined', masked_pan: '****-****-****-7890' }
-                    ].map(tx => (
-                      <tr key={tx.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">{tx.id}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.masked_pan || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0)).toFixed(2)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <TransactionStatusBadge status={tx.status} size="sm" />
-                        </td>
-                      </tr>
-                    ))
-                  ) : filteredTransactions.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                        No transactions matching the selected status filter.
+        {error ? (
+          <div className="bg-red-100 text-red-700 rounded px-4 py-2 mb-4">{error}</div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-gray-100">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terminal</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {transactions.length === 0 ? (
+                  // Mock data since we don't have real transactions yet
+                  [
+                    { id: 'tx1011', merchant: 'Acme Retail', terminal: 'POS-1001', date: '2025-07-27', amount: 120.50, status: 'Completed', masked_pan: '****-****-****-1234' },
+                    { id: 'tx1012', merchant: 'Acme Retail', terminal: 'POS-1001', date: '2025-07-27', amount: 75.00, status: 'Pending', masked_pan: '****-****-****-5678' },
+                    { id: 'tx1021', merchant: 'Best Eats', terminal: 'POS-2001', date: '2025-07-26', amount: 45.75, status: 'Completed', masked_pan: '****-****-****-9012' },
+                    { id: 'tx1022', merchant: 'Tech World', terminal: 'POS-3001', date: '2025-07-26', amount: 350.00, status: 'Completed', masked_pan: '****-****-****-3456' },
+                    { id: 'tx1023', merchant: 'Best Eats', terminal: 'POS-2001', date: '2025-07-25', amount: 28.50, status: 'Declined', masked_pan: '****-****-****-7890' }
+                  ].map(tx => (
+                    <tr key={tx.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">{tx.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.masked_pan || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.date}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tx.amount.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <TransactionStatusBadge status={tx.status} size="sm" />
                       </td>
                     </tr>
-                  ) : (
-                    filteredTransactions.map(tx => (
-                      <tr key={tx.id || 'unknown'} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">{tx.id || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant || tx.merchant_id || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal || tx.terminal_id || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.masked_pan || tx.card_number || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.created_at ? new Date(tx.created_at).toLocaleString(undefined, {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        }) : 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0)).toFixed(2)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <TransactionStatusBadge status={tx.status} size="sm" />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
+                  ))
+                ) : filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                      No transactions matching the selected status filter.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTransactions.map(tx => (
+                    <tr key={tx.id || 'unknown'} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">{tx.id || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.merchant || tx.merchant_id || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.terminal || tx.terminal_id || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.masked_pan || tx.card_number || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.created_at ? new Date(tx.created_at).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount || 0)).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <TransactionStatusBadge status={tx.status} size="sm" />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
