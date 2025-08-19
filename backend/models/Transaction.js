@@ -72,7 +72,7 @@ class TransactionModel {
           SELECT 
             id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
             amount, currency, status, type as transaction_type, created_at,
-            card_number as masked_pan, auth_code as approval_code, reference
+            card_number, auth_code as approval_code, reference
           FROM ${this.tableName} 
           WHERE id = $1
         `;

@@ -86,7 +86,7 @@ exports.createTransaction = async (req, res) => {
       reference,
       trace,
       card_scheme,
-      masked_pan,
+      card_number,
       mcc,
       pos_entry_mode,
       is_international,
