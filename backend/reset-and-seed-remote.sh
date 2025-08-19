@@ -8,12 +8,41 @@ export JPTS_PORT=5432
 export JPTS_DB=jpts_dev
 export JPTS_USER=jpts_dev_user
 export JPTS_PASSWORD=DEzQ7gfH0CiLvptQg4cymcWmlMBVkMyj
+export DB_TYPE=jpts
 
 # Move to backend directory
 cd "$(dirname "$0")"
 
-# Ensure core tables exist in the remote DB
-node init-jpts-data.js
+LOG_FILE="seed-remote.log"
+echo "Starting remote seeding process at $(date)" > $LOG_FILE
 
-# Run the reset-and-seed script
-node reset-and-seed.js
+echo "Initializing database tables..."
+node init-jpts-data.js 2>&1 | tee -a $LOG_FILE
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+    echo "Error: Failed to initialize database tables" | tee -a $LOG_FILE
+    exit 1
+fi
+
+echo "Seeding MCCs..."
+node seed-mccs.js 2>&1 | tee -a $LOG_FILE
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+    echo "Error: Failed to seed MCCs" | tee -a $LOG_FILE
+    exit 1
+fi
+
+echo "Seeding realistic data..."
+node seed-realistic-data.js 2>&1 | tee -a $LOG_FILE
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+    echo "Error: Failed to seed realistic data" | tee -a $LOG_FILE
+    exit 1
+fi
+
+echo "Seeding transactions..."
+node seed-transactions.js 2>&1 | tee -a $LOG_FILE
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+    echo "Error: Failed to seed transactions" | tee -a $LOG_FILE
+    exit 1
+fi
+
+echo "All seeding completed successfully!" | tee -a $LOG_FILE
+echo "Log file saved to $LOG_FILE"

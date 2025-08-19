@@ -173,7 +173,7 @@ async function checkAndCreateTables() {
           transaction_type VARCHAR(20),
           
           card_scheme VARCHAR(20),
-          masked_pan VARCHAR(20),
+          card_number VARCHAR(20),
           
           mcc VARCHAR(4),
           pos_entry_mode VARCHAR(10),
@@ -198,6 +198,40 @@ async function checkAndCreateTables() {
       logger.log('Transactions table created successfully');
     } else {
       logger.log('Transactions table already exists');
+      
+      // Check if card_number column exists
+      const cardNumberColumnCheck = await jpts.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public'
+          AND table_name = 'transactions'
+          AND column_name = 'card_number'
+        );
+      `);
+      
+      if (!cardNumberColumnCheck.rows[0].exists) {
+        logger.log('Adding card_number column to transactions table...');
+        await jpts.query('ALTER TABLE transactions ADD COLUMN card_number VARCHAR(20)');
+        
+        // Migrate data from masked_pan if it exists
+        const maskedPanColumnCheck = await jpts.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.columns 
+            WHERE table_schema = 'public'
+            AND table_name = 'transactions'
+            AND column_name = 'masked_pan'
+          );
+        `);
+        
+        if (maskedPanColumnCheck.rows[0].exists) {
+          logger.log('Migrating data from masked_pan to card_number...');
+          await jpts.query('UPDATE transactions SET card_number = masked_pan');
+          await jpts.query('ALTER TABLE transactions DROP COLUMN masked_pan');
+          logger.log('Data migration completed');
+        }
+        
+        logger.log('card_number column added successfully');
+      }
     }
     
     if (!auditLogsTableExists) {
