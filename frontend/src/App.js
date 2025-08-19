@@ -11,7 +11,6 @@ import MerchantPricing from './MerchantPricing';
 import TestMerchantList from './TestMerchantList';
 import ApiDebugger from './ApiDebugger';
 import DirectApiTest from './DirectApiTest';
-import Analytics from './Analytics';
 import MockDataTester from './MockDataTester';
 import FeeStructureManagement from './FeeStructureManagement';
 import VolumeTierManagement from './VolumeTierManagement';
@@ -30,10 +29,6 @@ function StatusWrapper() {
   return <Status />;
 }
 
-function AnalyticsWrapper() {
-  return <Analytics />;
-}
-
 // This component connects the API mock data notifications to our notification system
 function AppWithNotifications() {
   const { setUsingMockData } = useNotification();
@@ -49,7 +44,6 @@ function AppWithNotifications() {
       <Routes>
         <Route path="/" element={<RegisterWrapper />} />
         <Route path="/status" element={<StatusWrapper />} />
-        <Route path="/analytics" element={<AnalyticsWrapper />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/merchant-management" element={<MerchantManagement />} />
         <Route path="/admin-panel" element={<AdminPanel />} />

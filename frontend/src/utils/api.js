@@ -60,13 +60,6 @@ export const API_ENDPOINTS = {
   APPLICATION_DOCUMENTS: (id) => `/api/applications/${id}/documents`,
   APPLICATION_DOCUMENT: (appId, docId) => `/api/applications/${appId}/documents/${docId}`,
   
-  // Remove duplicate TRANSACTIONS endpoints that were added above
-  
-  // Analytics
-  ANALYTICS_DASHBOARD: '/api/analytics/dashboard',
-  ANALYTICS_TRANSACTIONS: '/api/analytics/transactions',
-  ANALYTICS_REVENUE: '/api/analytics/revenue',
-  
   // User Management
   USERS: '/api/users',
   USER_BY_ID: (id) => `/api/users/${id}`,

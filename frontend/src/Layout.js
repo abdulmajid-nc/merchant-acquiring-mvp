@@ -20,12 +20,6 @@ const MerchantIcon = () => (
   </svg>
 );
 
-const AnalyticsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
-
 const TerminalIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -133,18 +127,6 @@ export default function Layout({ children }) {
             >
               <span className="mr-3">{isActive('/merchant-management') ? <MerchantIcon /> : <MerchantIcon />}</span>
               Merchants
-            </Link>
-            
-            <Link 
-              to="/analytics" 
-              className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
-                isActive('/analytics') 
-                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <span className="mr-3">{isActive('/analytics') ? <AnalyticsIcon /> : <AnalyticsIcon />}</span>
-              Analytics
             </Link>
             
             <Link 

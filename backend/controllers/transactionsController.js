@@ -36,7 +36,8 @@ exports.getTransactions = async (req, res) => {
       page,
       limit,
       sortField,
-      sortDirection
+      sortDirection,
+      include: ['merchant'] // Include merchant data in the response
     });
     res.json({
       transactions,
