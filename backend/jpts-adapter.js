@@ -52,7 +52,8 @@ function init() {
       // Connection timeout of 5 seconds
       connectionTimeoutMillis: 5000,
       // Idle timeout of 30 seconds
-      idleTimeoutMillis: 30000
+      idleTimeoutMillis: 30000,
+      ssl: { rejectUnauthorized: false }
     });
     
     // Test the connection

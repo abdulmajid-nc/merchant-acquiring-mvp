@@ -47,11 +47,44 @@ class MccModel {
         throw new Error('JPTS adapter not initialized');
       }
       
-      const query = `SELECT * FROM ${this.tableName}`;
+      const query = 'SELECT * FROM ' + this.tableName;
       const result = await this.jpts.query(query);
       return result.rows;
     } catch (error) {
       console.error('Error finding MCCs:', error);
+      throw error;
+    }
+  }
+
+  // Find MCCs with pagination
+  async findPaginated(page = 1, limit = 10) {
+    try {
+      if (!this.jpts) {
+        throw new Error('JPTS adapter not initialized');
+      }
+
+      // Calculate offset
+      const offset = (page - 1) * limit;
+      
+      // Get total count
+      const countResult = await this.jpts.query('SELECT COUNT(*) FROM ' + this.tableName);
+      const totalCount = parseInt(countResult.rows[0].count);
+      
+      // Get paginated results
+      const query = 'SELECT * FROM ' + this.tableName + ' ORDER BY code LIMIT $1 OFFSET $2';
+      const result = await this.jpts.query(query, [limit, offset]);
+      
+      return {
+        data: result.rows,
+        pagination: {
+          total: totalCount,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(totalCount / limit)
+        }
+      };
+    } catch (error) {
+      console.error('Error finding MCCs with pagination:', error);
       throw error;
     }
   }
@@ -63,7 +96,7 @@ class MccModel {
         throw new Error('JPTS adapter not initialized');
       }
       
-      const query = `SELECT * FROM ${this.tableName} WHERE code = $1`;
+      const query = 'SELECT * FROM ' + this.tableName + ' WHERE code = $1';
       const result = await this.jpts.query(query, [code]);
       return result.rows.length ? result.rows[0] : null;
     } catch (error) {
@@ -112,7 +145,7 @@ class MccModel {
         throw new Error('JPTS adapter not initialized');
       }
       
-      const query = `DELETE FROM ${this.tableName} WHERE code = $1 RETURNING *`;
+      const query = 'DELETE FROM ' + this.tableName + ' WHERE code = $1 RETURNING *';
       const result = await this.jpts.query(query, [code]);
       return result.rows.length ? result.rows[0] : null;
     } catch (error) {
@@ -120,60 +153,8 @@ class MccModel {
       throw error;
     }
   }
-  
-  // Find MCCs with pagination
-  async findPaginated(skip, limit, filter = {}, options = {}) {
-    try {
-      if (!this.jpts) {
-        throw new Error('JPTS adapter not initialized');
-      }
-      
-      // Build WHERE clause from filter
-      let whereClause = '';
-      let whereParams = [];
-      
-      if (Object.keys(filter).length > 0) {
-        const conditions = [];
-        let paramIndex = 1;
-        
-        for (const [key, value] of Object.entries(filter)) {
-          conditions.push(`${key} = $${paramIndex}`);
-          whereParams.push(value);
-          paramIndex++;
-        }
-        
-        whereClause = `WHERE ${conditions.join(' AND ')}`;
-      }
-      
-      // Build order clause
-      const orderClause = options.sort ? 
-        `ORDER BY ${Object.entries(options.sort).map(([field, dir]) => `${field} ${dir === -1 ? 'DESC' : 'ASC'}`).join(', ')}` :
-        'ORDER BY code ASC';
-      
-      // Get total count with this filter
-      const countQuery = `SELECT COUNT(*) AS total FROM ${this.tableName} ${whereClause}`;
-      const countResult = await this.jpts.query(countQuery, whereParams);
-      const total = parseInt(countResult.rows[0].total);
-      
-      // Get paginated data
-      const dataQuery = `
-        SELECT * FROM ${this.tableName} 
-        ${whereClause} 
-        ${orderClause} 
-        LIMIT $${whereParams.length + 1} 
-        OFFSET $${whereParams.length + 2}`;
-      
-      const dataResult = await this.jpts.query(dataQuery, [...whereParams, limit, skip]);
-      
-      return {
-        data: dataResult.rows,
-        total
-      };
-    } catch (error) {
-      console.error('Error finding MCCs with pagination:', error);
-      throw error;
-    }
-  }
 }
 
-module.exports = new MccModel();
+// Export a singleton instance
+const mccModel = new MccModel();
+module.exports = mccModel;

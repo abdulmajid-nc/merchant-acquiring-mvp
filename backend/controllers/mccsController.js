@@ -24,18 +24,10 @@ exports.getAllMccs = async (req, res) => {
       let mccs;
       let total;
       
-      if (process.env.DB_TYPE === 'jpts') {
-        // For jPTS, get all records and handle pagination in memory
-        // This is not efficient for large datasets but works for MCCs which are limited
-        const allMccs = await Mcc.find();
-        total = allMccs.length;
-        mccs = allMccs.sort((a, b) => a.code.localeCompare(b.code)).slice(skip, skip + limit);
-      } else {
-        // For other database types
-        const result = await Mcc.findPaginated(skip, limit, {}, { sort: { code: 1 } });
-        mccs = result.data;
-        total = result.total;
-      }
+      // Use the new findPaginated method for all database types
+      const result = await Mcc.findPaginated(page, limit);
+      mccs = result.data;
+      total = result.pagination.total;
       
       return res.status(200).json({
         mccs,
