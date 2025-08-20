@@ -39,6 +39,7 @@ function AdminPanel() {
     setLoading(true);
     try {
       const response = await api.get(API_ENDPOINTS.TRANSACTIONS);
+      console.log("Transaction data:", response.transactions);
       setTransactions(response.transactions || []);
       setError(null);
     } catch (err) {
@@ -243,7 +244,7 @@ function AdminPanel() {
                         {formatCurrency(tx.amount, tx.currency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tx.masked_pan || ''}
+                        <span className="font-medium">{tx.card_scheme || ''}</span> {tx.card_display || tx.masked_pan || ''}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <TransactionStatusBadge status={tx.status} size="sm" />

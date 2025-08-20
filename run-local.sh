@@ -167,62 +167,10 @@ initialize_database() {
     
     cd "$BACKEND_DIR"
     
-    # First, make sure tables exist by running initialization script
-    if [ -f "init-jpts-data.js" ]; then
-        echo -e "${PURPLE}Checking database structure...${NC}" | tee -a "$LOGFILE"
-        node init-jpts-data.js > /dev/null 2>&1 &
-        INIT_PID=$!
-        wait $INIT_PID
-    else
-        echo -e "${YELLOW}No init-jpts-data.js found, skipping initialization${NC}" | tee -a "$LOGFILE"
-    fi
-    
-    # Check if we need to seed data (saves time if database already has data)
+    # Always use init-local-db.js for all DB initialization and seeding
     if need_seeding; then
-        echo -e "${PURPLE}Database needs seeding, performing full seed operation...${NC}" | tee -a "$LOGFILE"
-        
-        # Truncate tables before seeding to prevent duplicate data
-        truncate_tables
-        
-        # Prepare seed scripts in background processes for faster execution
-        echo -e "${PURPLE}Starting seed operations in parallel...${NC}" | tee -a "$LOGFILE"
-        
-        # Start MCC seeding in background
-        if [ -f "seed-mccs.js" ]; then
-            echo -e "${PURPLE}Seeding MCC data...${NC}" | tee -a "$LOGFILE"
-            node seed-mccs.js > /dev/null 2>&1 &
-            MCC_PID=$!
-        else
-            echo -e "${YELLOW}No seed-mccs.js found, skipping MCC seeding${NC}" | tee -a "$LOGFILE"
-        fi
-        
-        # Wait for MCC seeding to complete as merchants may depend on it
-        if [ -n "$MCC_PID" ]; then
-            wait $MCC_PID
-        fi
-        
-        # Seed merchant data (sequential as it's required for transactions)
-        if [ -f "seed-realistic-data.js" ]; then
-            echo -e "${PURPLE}Seeding realistic merchant and terminal data...${NC}" | tee -a "$LOGFILE"
-            node seed-realistic-data.js > /dev/null 2>&1
-        else
-            # Fallback to seed-transactions.js if available
-            if [ -f "seed-transactions.js" ]; then
-                echo -e "${PURPLE}Seeding basic merchant data...${NC}" | tee -a "$LOGFILE"
-                node seed-transactions.js > /dev/null 2>&1
-            else
-                echo -e "${YELLOW}No merchant seeding scripts found${NC}" | tee -a "$LOGFILE"
-            fi
-        fi
-        
-        # Seed transaction data if needed
-        if [ -f "run-seed-transactions.js" ]; then
-            echo -e "${PURPLE}Seeding transaction data...${NC}" | tee -a "$LOGFILE"
-            node run-seed-transactions.js > /dev/null 2>&1
-        else
-            echo -e "${YELLOW}No run-seed-transactions.js found, skipping transaction seeding${NC}" | tee -a "$LOGFILE"
-        fi
-        
+        echo -e "${PURPLE}Database needs seeding, running init-local-db.js...${NC}" | tee -a "$LOGFILE"
+        node init-local-db.js > /dev/null 2>&1
         echo -e "${GREEN}Database seeding completed successfully${NC}" | tee -a "$LOGFILE"
     fi
 }

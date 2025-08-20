@@ -157,10 +157,19 @@ class TransactionModel {
         SELECT 
           t.id, t.merchant_id::text as merchant_id, t.terminal_id::text as terminal_id, 
           t.amount, t.currency, t.status, t.type as transaction_type, t.created_at,
-          t.card_number as masked_pan, t.auth_code as approval_code, t.reference,
-          m.name as merchant_name
+          COALESCE(t.card_number, t.masked_pan) as card_number,
+          t.auth_code as approval_code, t.reference,
+          m.name as merchant_name,
+          CASE 
+            WHEN t.card_number LIKE '4%' THEN 'Visa'
+            WHEN t.card_number LIKE '5%' THEN 'MasterCard'
+            WHEN t.card_number LIKE '3%' THEN 'Amex'
+            WHEN t.card_number LIKE '6%' THEN 'Discover'
+            ELSE 'Card'
+          END as card_scheme,
+          SUBSTRING(COALESCE(t.card_number, t.masked_pan), LENGTH(COALESCE(t.card_number, t.masked_pan)) - 3, 4) as card_last4
         FROM ${this.tableName} t
-        LEFT JOIN merchants m ON t.merchant_id::text = m.id::text
+        LEFT JOIN merchants m ON t.merchant_id = m.id
         ORDER BY t.${sortField} ${sortDirection}
         LIMIT $1 OFFSET $2
       `;
@@ -170,13 +179,22 @@ class TransactionModel {
       const total = parseInt(countResult.rows[0].count);
       
       // Execute the main query with pagination
+      console.log('Executing transaction query with merchant join:', query);
       const result = await this.jpts.query(query, [limit, offset]);
       
+      console.log('Raw transaction results (first row):', result.rows.length > 0 ? JSON.stringify(result.rows[0], null, 2) : 'No results');
+      
       // Convert amount field to number before sending to frontend
-      const processedRows = result.rows.map(row => ({
-        ...row,
-        amount: parseFloat(row.amount)
-      }));
+      const processedRows = result.rows.map(row => {
+        console.log(`Processing row ID ${row.id}, merchant_id: ${row.merchant_id}, merchant_name: ${row.merchant_name}`);
+        return {
+          ...row,
+          amount: parseFloat(row.amount),
+          // Ensure merchant_name is populated
+          merchant_name: row.merchant_name || `Merchant ID: ${row.merchant_id}`,
+          card_display: row.card_number ? `**** ${row.card_last4}` : row.card_number // Add a formatted card display
+        };
+      });
       
       return {
         rows: processedRows,
@@ -195,9 +213,12 @@ class TransactionModel {
         throw new Error('JPTS adapter not initialized');
       }
       
-      const query = `SELECT * FROM ${this.tableName} 
-                     WHERE terminal_id = $1 
-                     ORDER BY created_at DESC`;
+      const query = `
+        SELECT t.*, m.name as merchant_name 
+        FROM ${this.tableName} t
+        LEFT JOIN merchants m ON t.merchant_id = m.id
+        WHERE t.terminal_id = $1 
+        ORDER BY t.created_at DESC`;
       const result = await this.jpts.query(query, [terminalId]);
       return result.rows;
     } catch (error) {
@@ -206,38 +227,7 @@ class TransactionModel {
     }
   }
   
-  // Find all transactions with pagination and sorting
-  async findAll({ page = 1, limit = 20, sortField = 'created_at', sortDirection = 'DESC' }) {
-    try {
-      if (!this.jpts) {
-        throw new Error('JPTS adapter not initialized');
-      }
-      
-      const offset = (page - 1) * limit;
-      
-      // Get total count
-      const countQuery = `SELECT COUNT(*) AS total FROM ${this.tableName}`;
-      const countResult = await this.jpts.query(countQuery);
-      const total = parseInt(countResult.rows[0].total);
-      
-      // Get transactions with pagination and sorting
-      const query = `SELECT 
-                       id, merchant_id::text as merchant_id, terminal_id::text as terminal_id, 
-                       amount, currency, status, transaction_type, created_at,
-                       masked_pan, approval_code, reference
-                     FROM ${this.tableName} 
-                     ORDER BY ${sortField} ${sortDirection} 
-                     LIMIT $1 OFFSET $2`;
-                     
-      const result = await this.jpts.query(query, [limit, offset]);
-      
-      // Convert amount field to number before sending to frontend
-      const processedRows = result.rows.map(row => ({
-        ...row,
-        amount: parseFloat(row.amount)
-      }));
-      
-      return { rows: processedRows, total };
+
     } catch (error) {
       console.error('Error finding transactions:', error);
       throw error;

@@ -16,33 +16,12 @@ cd "$(dirname "$0")"
 LOG_FILE="seed-remote.log"
 echo "Starting remote seeding process at $(date)" > $LOG_FILE
 
-echo "Initializing database tables..."
-node init-jpts-data.js 2>&1 | tee -a $LOG_FILE
+echo "Initializing and seeding remote database..."
+node init-remote-db.js 2>&1 | tee -a $LOG_FILE
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
-    echo "Error: Failed to initialize database tables" | tee -a $LOG_FILE
+    echo "Error: Remote DB initialization and seeding failed" | tee -a $LOG_FILE
     exit 1
 fi
 
-echo "Seeding MCCs..."
-node seed-mccs.js 2>&1 | tee -a $LOG_FILE
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-    echo "Error: Failed to seed MCCs" | tee -a $LOG_FILE
-    exit 1
-fi
-
-echo "Seeding realistic data..."
-node seed-realistic-data.js 2>&1 | tee -a $LOG_FILE
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-    echo "Error: Failed to seed realistic data" | tee -a $LOG_FILE
-    exit 1
-fi
-
-echo "Seeding transactions..."
-node seed-transactions.js 2>&1 | tee -a $LOG_FILE
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-    echo "Error: Failed to seed transactions" | tee -a $LOG_FILE
-    exit 1
-fi
-
-echo "All seeding completed successfully!" | tee -a $LOG_FILE
+echo "All remote seeding completed successfully!" | tee -a $LOG_FILE
 echo "Log file saved to $LOG_FILE"

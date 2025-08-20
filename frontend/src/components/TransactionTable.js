@@ -58,13 +58,13 @@ const TransactionTable = ({
                   {tx._id || tx.id || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {tx.merchant_name || (tx.merchant && typeof tx.merchant === 'object' ? tx.merchant.name : tx.merchant) || '-'}
+                  {tx.merchant_name || 'Loading...'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {tx.terminal_id || (tx.terminal && typeof tx.terminal === 'object' ? tx.terminal.serial_number : tx.terminal) || '-'}
+                  {tx.terminal_id || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {(tx.timestamp || tx.created_at) ? new Date(tx.timestamp || tx.created_at).toLocaleString(undefined, {
+                  {tx.created_at ? new Date(tx.created_at).toLocaleString(undefined, {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -73,11 +73,11 @@ const TransactionTable = ({
                   }) : 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {typeof tx.amount === 'number' || typeof tx.amount === 'string' ? 
-                    `$${parseFloat(tx.amount).toFixed(2)}` : 'N/A'}
+                  {tx.amount ? `₨${parseFloat(tx.amount).toFixed(2)}` : 'N/A'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {tx.masked_pan || tx.card_number || 'N/A'}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {/* Simple string format instead of complex structure */}
+                  {(tx.card_scheme || 'Card') + ' ' + (tx.card_display || (tx.card_number ? tx.card_number.replace('______', ' **** ') : 'N/A'))}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <TransactionStatusBadge status={tx.status} size="sm" />

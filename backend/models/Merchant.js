@@ -46,6 +46,30 @@ class MerchantModel {
       throw error;
     }
   }
+  
+  // Find multiple merchants by their IDs
+  async findByIds(ids) {
+    try {
+      if (!this.jpts) {
+        throw new Error('JPTS adapter not initialized');
+      }
+      
+      if (!ids || !ids.length) {
+        return [];
+      }
+      
+      // Create placeholders for SQL query ($1, $2, etc.)
+      const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+      const query = `SELECT id, name FROM ${this.tableName} WHERE id IN (${placeholders})`;
+      
+      console.log(`Finding merchants with IDs: ${ids.join(', ')}`);
+      const result = await this.jpts.query(query, ids);
+      return result.rows;
+    } catch (error) {
+      console.error(`Error finding merchants with ids [${ids.join(', ')}]:`, error);
+      throw error;
+    }
+  }
 
   // Update merchant by ID
   async update(id, updateData) {

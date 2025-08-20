@@ -1,3 +1,22 @@
+const fs = require('fs');
+const path = require('path');
+const csv = require('csv-parser');
+// Helper to get a random element from an array
+function getRandomElement(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Read transaction log CSV for realistic transaction data
+async function readTranlogCSV() {
+  const rows = [];
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(path.join(__dirname, '../resources/tranlog.csv'))
+      .pipe(csv())
+      .on('data', (row) => rows.push(row))
+      .on('end', () => resolve(rows))
+      .on('error', reject);
+  });
+}
 /**
  * seed-realistic-data.js
  * This script seeds realistic merchant and terminal data into the jPTS database
@@ -322,23 +341,46 @@ async function seedData() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Seed merchants first
-    const merchantCount = await seedMerchants(100);
-    
-    // Then seed terminals
-    await seedTerminals(100, merchantCount);
-    
+    const merchantCount = await seedMerchants(10); // match old logic for 10 merchants
+
+    // Then seed terminals (2 per merchant, 20 total)
+    await seedTerminals(20, merchantCount);
+
+    // Get all merchant and terminal IDs for transaction seeding
+    const merchantResult = await jpts.query('SELECT id FROM merchants');
+    const terminalResult = await jpts.query('SELECT id, merchant_id FROM terminals');
+    const merchants = merchantResult.rows;
+    const terminals = terminalResult.rows;
+
+    // Read transaction log CSV
+    const tranlogRows = await readTranlogCSV();
+
+    // Seed transactions (100)
+    for (let i = 0; i < 100; i++) {
+      const ref = getRandomElement(tranlogRows);
+      const merchant = getRandomElement(merchants);
+      const terminal = terminals.filter(t => t.merchant_id === merchant.id)[0] || getRandomElement(terminals);
+      await jpts.query(
+        `INSERT INTO transactions (merchant_id, terminal_id, amount, currency, card_number, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          merchant.id,
+          terminal.id,
+          ref.amount || (Math.random() * 100).toFixed(2),
+          ref.currencycode || 'USD',
+          ref.maskedpan || '4111********1111',
+          ref.responsecode === '0000' ? 'Approved' : 'Pending',
+          ref.date || new Date().toISOString()
+        ]
+      );
+    }
+
     logger.log('Realistic data seeding completed successfully');
   } catch (error) {
     logger.error(`Error during data seeding: ${error.message}`);
     logger.error(error.stack);
-  } finally {
-    // Close the connection pool
-    if (jpts.disconnect) {
-      jpts.disconnect();
-      logger.log('PostgreSQL connection pool closed');
-    }
   }
 }
 
-// Run the seeding process
-seedData();
+// Export the seeding function for use in main init script
+module.exports = seedData;

@@ -62,8 +62,11 @@ const TransactionDetailsModal = ({ transaction, onClose }) => {
           {/* Card Information */}
           <div className="p-4 border rounded">
             <p className="text-sm text-gray-600">Card Information</p>
-            <p className="font-medium">{transaction.card_scheme}</p>
-            <p className="text-sm text-gray-500">{transaction.card_number}</p>
+            <p className="font-medium">{transaction.card_scheme || 'Card'}</p>
+            <p className="text-sm text-gray-500">
+              {transaction.card_display || 
+               (transaction.card_number ? transaction.card_number.replace('______', ' **** ') : 'N/A')}
+            </p>
           </div>
 
           {/* Transaction Type */}

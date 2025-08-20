@@ -435,15 +435,8 @@ async function seedData() {
     console.error(`Error during MCC data seeding: ${error.message}`);
     logger.error(`Error during MCC data seeding: ${error.message}`);
     logger.error(error.stack);
-  } finally {
-    // Close the connection pool
-    if (jpts.disconnect) {
-      jpts.disconnect();
-      console.log('PostgreSQL connection pool closed');
-      logger.log('PostgreSQL connection pool closed');
-    }
   }
 }
 
 // Run the seeding process
-seedData();
+module.exports = seedData;
