@@ -9,6 +9,9 @@ import TransactionDetailsModal from './components/TransactionDetailsModal';
 import { SYSTEM_STATUSES } from './constants/transactionConstants';
 
 function AdminPanel() {
+  // Pagination state for recent transactions
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -90,6 +93,18 @@ function AdminPanel() {
     setNotification({ type: 'error', message: msg });
     setTimeout(() => setNotification({ type: '', message: '' }), 3000);
   };
+
+  // Calculate paginated transactions
+  const totalPages = Math.ceil((transactions?.length || 0) / pageSize);
+  const paginatedTransactions = transactions.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Pagination handlers
+  const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const goToPage = (page) => setCurrentPage(page);
+
+  // Reset to first page when transactions change
+  useEffect(() => { setCurrentPage(1); }, [transactions]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -219,8 +234,8 @@ function AdminPanel() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {transactions && transactions.length > 0 ? (
-                  transactions.slice(0, 10).map(tx => (
+                {paginatedTransactions && paginatedTransactions.length > 0 ? (
+                  paginatedTransactions.map(tx => (
                     <tr key={tx.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">
                         {tx.id}
@@ -272,6 +287,45 @@ function AdminPanel() {
                 )}
               </tbody>
             </table>
+          </div>
+          {/* Pagination Controls */}
+          <div className="flex justify-between items-center mt-4">
+            <div className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages || 1}
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="px-3 py-1 rounded border text-gray-700 bg-white disabled:opacity-50"
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              {/* Page numbers (show up to 5 pages for brevity) */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(page =>
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 2 && page <= currentPage + 2)
+                )
+                .map(page => (
+                  <button
+                    key={page}
+                    className={`px-3 py-1 rounded border ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
+                    onClick={() => goToPage(page)}
+                    disabled={page === currentPage}
+                  >
+                    {page}
+                  </button>
+                ))}
+              <button
+                className="px-3 py-1 rounded border text-gray-700 bg-white disabled:opacity-50"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </section>
 

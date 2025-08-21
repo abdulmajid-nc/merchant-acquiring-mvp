@@ -1,0 +1,32 @@
+// Transaction type code to label mapping (based on backend Java enum)
+const TRANSACTION_TYPE_LABELS = {
+  any: 'Any',
+  '': 'Unknown',
+  '00': 'Purchase',
+  '01': 'Withdrawal',
+  '02': 'Adjustment Debit',
+  '10': 'Scheme Account Funding',
+  '11': 'Quasi Cash',
+  '12': 'Cash Out (Manual Cash)',
+  '20': 'Return',
+  '21': 'ATM Deposit',
+  '2S': 'Cash In (Deposit)',
+  '22': 'Adjustment Credit',
+  '24': 'ICT Credit',
+  '29': 'Scheme Credit',
+  '30': 'Balance Inquiry',
+  '31': 'Balance Inquiry',
+  wtransfer: 'Transfer',
+  sweep: 'Sweep',
+  '39': 'Account Verification',
+  wcredit: 'Load',
+  winitialcredit: 'Initial Load',
+  wdebit: 'Unload',
+  'purchase-foreign-currency': 'Purchase Foreign Currency',
+  'withdrawal-foreign-currency': 'Withdrawal Foreign Currency',
+  'atm-deposit-foreign-currency': 'ATM Deposit Foreign Currency',
+  'cash-in-foreign-currency': 'Cash In Foreign Currency',
+  'cash-out-foreign-currency': 'Cash Out Foreign Currency',
+};
+
+export default TRANSACTION_TYPE_LABELS;

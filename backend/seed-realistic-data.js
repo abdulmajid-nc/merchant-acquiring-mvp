@@ -360,9 +360,25 @@ async function seedData() {
       const ref = getRandomElement(tranlogRows);
       const merchant = getRandomElement(merchants);
       const terminal = terminals.filter(t => t.merchant_id === merchant.id)[0] || getRandomElement(terminals);
+      // Map itc to transaction_type code
+      const itcToTransactionType = {
+        '100.00': '00', '100.50': '00', '200.00': '00', '222.00': '00', // Purchases
+        '100.01': '01', '200.01': '01', '222.01': '01', // Withdrawals
+        '200.12': '12', // Cash Out
+        '200.21': '21', // ATM Deposit
+        '200.2S': '2S', // Cash In
+        'wcredit': 'wcredit', 'wcreditreversal': 'wcredit', 'winitialcredit': 'wcredit', '100.20': 'wcredit', '200.20': 'wcredit', '220.20': 'wcredit', // Credit
+        'wdebit': 'wdebit', 'wdebitreversal': 'wdebit', 'glunloadfunds': 'wdebit', 'glloadfunds': 'wdebit', // Debit
+        'wtransfer': 'wtransfer', '200.40': 'wtransfer', // Transfer
+        '100.11': '11', '200.11': '11', '222.11': '11', // Quasi Cash
+        '100.00.113': '39', '100.39.180': '39', '100.39.113': '39', '100.39.100': '39', '120.00.113': '39', // Account Verification
+        // Add more as needed
+      };
+      const itc = ref.itc || '';
+      const transactionType = itcToTransactionType[itc] || '00';
       await jpts.query(
-        `INSERT INTO transactions (merchant_id, terminal_id, amount, currency, card_number, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        `INSERT INTO transactions (merchant_id, terminal_id, amount, currency, card_number, status, created_at, mcc, transaction_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           merchant.id,
           terminal.id,
@@ -370,7 +386,9 @@ async function seedData() {
           ref.currencycode || 'USD',
           ref.maskedpan || '4111********1111',
           ref.responsecode === '0000' ? 'Approved' : 'Pending',
-          ref.date || new Date().toISOString()
+          ref.date || new Date().toISOString(),
+          ref.mcc || '5999',
+          transactionType
         ]
       );
     }

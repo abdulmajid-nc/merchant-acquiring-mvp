@@ -1,6 +1,7 @@
 import React from 'react';
 import TransactionStatusBadge from './TransactionStatusBadge';
 import formatCurrency from '../utils/formatCurrency';
+import TRANSACTION_TYPE_LABELS from '../constants/transactionTypeLabels';
 
 const TransactionDetailsModal = ({ transaction, onClose }) => {
   if (!transaction) return null;
@@ -72,7 +73,9 @@ const TransactionDetailsModal = ({ transaction, onClose }) => {
           {/* Transaction Type */}
           <div className="p-4 border rounded">
             <p className="text-sm text-gray-600">Transaction Type</p>
-            <p className="font-medium capitalize">{transaction.transaction_type}</p>
+            <p className="font-medium">
+              {TRANSACTION_TYPE_LABELS[transaction.transaction_type] || transaction.transaction_type || 'Unknown'}
+            </p>
           </div>
 
           {/* Additional Details */}
