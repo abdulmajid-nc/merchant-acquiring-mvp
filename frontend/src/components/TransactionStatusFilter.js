@@ -19,17 +19,17 @@ const TransactionStatusFilter = ({ selectedStatus, onStatusChange }) => {
 
   return (
     <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
         Status Filter
       </label>
-      <div className="flex flex-wrap gap-2">
+  <div className="flex flex-wrap gap-2">
         {/* "All" option */}
         <button
           onClick={() => onStatusChange('all')}
           className={`px-3 py-1 rounded-full text-sm ${
             selectedStatus === 'all' 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              ? 'bg-blue-500 text-white dark:bg-blue-700 dark:text-gray-100' 
+              : 'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
           }`}
         >
           All
@@ -44,8 +44,8 @@ const TransactionStatusFilter = ({ selectedStatus, onStatusChange }) => {
               onClick={() => onStatusChange(status)}
               className={`px-3 py-1 rounded-full text-sm ${
                 selectedStatus === status 
-                  ? `${config.bg} ${config.text} border-2 border-blue-500` 
-                  : `${config.bg} ${config.text} hover:opacity-80`
+                  ? `${config.bg} ${config.text} border-2 border-blue-500 dark:border-blue-400 dark:bg-gray-800 dark:text-gray-100` 
+                  : `${config.bg} ${config.text} hover:opacity-80 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700`
               }`}
             >
               {status}

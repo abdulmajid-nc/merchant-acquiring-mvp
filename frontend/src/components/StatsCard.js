@@ -25,9 +25,9 @@ const StatsCard = ({
   const changeColorClass = isPositiveChange ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 border border-gray-100 transition-shadow hover:shadow-md">
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-100 dark:border-gray-700 transition-shadow hover:shadow-md">
       <div className="flex justify-between items-center mb-3">
-        <h6 className="text-gray-500 text-sm font-medium">{title}</h6>
+  <h6 className="text-gray-500 dark:text-gray-300 text-sm font-medium">{title}</h6>
         {icon && (
           <div className={iconColor}>
             {icon}
@@ -35,13 +35,13 @@ const StatsCard = ({
         )}
       </div>
       <div>
-        <h2 className="text-2xl font-bold mb-1">{value}</h2>
+  <h2 className="text-2xl font-bold mb-1 dark:text-white">{value}</h2>
         {change && (
           <div className="flex items-center">
             <span className={`text-xs px-2 py-0.5 rounded-full ${changeColorClass}`}>
               {change}
             </span>
-            {period && <span className="text-gray-500 text-xs ml-2">{period}</span>}
+            {period && <span className="text-gray-500 dark:text-gray-300 text-xs ml-2">{period}</span>}
           </div>
         )}
       </div>

@@ -37,7 +37,7 @@ const StatusBadge = ({
   // Use alternative highlight classes if available and highlight is true
   const styleClasses = highlight && config.altClasses 
     ? config.altClasses
-    : `${config.bg} ${config.text}`;
+    : `${config.bg} ${config.text}${config.bgDark ? ` dark:${config.bgDark}` : ""}${config.textDark ? ` dark:${config.textDark}` : ""}`;
   
   return (
     <span className={`inline-flex items-center rounded font-medium ${styleClasses} ${sizeClasses[size] || sizeClasses.md} ${className}`}>
