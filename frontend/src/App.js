@@ -18,6 +18,7 @@ import AssignFeeStructure from './AssignFeeStructure';
 
 import Layout from './Layout';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import NotificationBanner from './components/NotificationBanner';
 import { setMockDataNotifier } from './utils/api';
 
@@ -64,13 +65,15 @@ function AppWithNotifications() {
 
 function App() {
   return (
-    <Router>
-      <NotificationProvider>
-        <Layout>
-          <AppWithNotifications />
-        </Layout>
-      </NotificationProvider>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <NotificationProvider>
+          <Layout>
+            <AppWithNotifications />
+          </Layout>
+        </NotificationProvider>
+      </Router>
+    </ThemeProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from './contexts/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
 
 // Heroicons (replacing Bootstrap icons)
@@ -58,6 +59,7 @@ const SettingsIcon = () => (
 );
 
 export default function Layout({ children }) {
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   
@@ -66,18 +68,18 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-0">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-0 transition-colors duration-300">
       {/* Notification space - adding extra padding at the top for notifications */}
       <div className="h-16"></div>
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+  <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Sidebar header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+  <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <div className="flex items-center justify-center h-10 w-10 rounded-md bg-gradient-to-br from-blue-600 to-purple-600 text-white">
               <img src="/nymcard-logo.svg" alt="Nymcard Logo" className="h-8 w-8" />
             </div>
-            <span className="ml-3 text-xl font-bold text-blue-gray-900">Nymcard Acquire</span>
+            <span className="ml-3 text-xl font-bold text-blue-gray-900 dark:text-white">Nymcard Acquire</span>
           </div>
           {/* Close button (mobile only) */}
           <button 
@@ -91,8 +93,16 @@ export default function Layout({ children }) {
         </div>
         
         {/* Sidebar menu */}
-        <nav className="mt-4 px-3">
+  <nav className="mt-4 px-3">
           <div className="space-y-1">
+            {/* Theme toggle button */}
+            <button
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-center px-4 py-2 mb-2 text-sm font-medium rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              aria-label="Toggle light/dark mode"
+            >
+              {theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+            </button>
             <Link 
               to="/admin-panel" 
               className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
@@ -203,10 +213,10 @@ export default function Layout({ children }) {
         </nav>
         
         {/* Support section */}
-        <div className="mt-auto p-4 border-t border-gray-200">
+  <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="mb-2">
-            <h5 className="text-sm font-semibold text-gray-700">Support</h5>
-            <p className="text-xs text-gray-500">Need help? Contact our 24/7 support team.</p>
+            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Support</h5>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Need help? Contact our 24/7 support team.</p>
           </div>
           <button className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             Get Help
@@ -215,9 +225,9 @@ export default function Layout({ children }) {
       </aside>
       
       {/* Content area */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+  <div className="lg:pl-64 flex flex-col flex-1">
         {/* Top navigation */}
-        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+  <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               {/* Left section - Mobile menu button & Search */}
@@ -287,7 +297,7 @@ export default function Layout({ children }) {
         </header>
         
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6 lg:p-8">
+  <main className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 transition-colors duration-300">
           {children}
         </main>
       </div>

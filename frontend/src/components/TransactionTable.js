@@ -29,8 +29,8 @@ const TransactionTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
@@ -44,7 +44,7 @@ const TransactionTable = ({
             )}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {transactions.length === 0 ? (
             <tr>
               <td colSpan={showActions ? 8 : 7} className="px-6 py-8 text-center text-gray-500">
@@ -53,11 +53,11 @@ const TransactionTable = ({
             </tr>
           ) : (
             transactions.map((tx) => (
-              <tr key={tx._id || tx.id || 'unknown'} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800">
+              <tr key={tx._id || tx.id || 'unknown'} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200">
                   {tx._id || tx.id || 'N/A'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                   {tx.merchant_name || 'Loading...'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

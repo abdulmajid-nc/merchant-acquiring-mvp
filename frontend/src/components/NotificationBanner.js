@@ -43,7 +43,7 @@ const NotificationBanner = () => {
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`flex items-center p-4 border-l-4 rounded shadow-md ${getNotificationClass(notification.type)}`}
+          className={`flex items-center p-4 border-l-4 rounded shadow-md ${getNotificationClass(notification.type)} dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100`}
         >
           <div className="mr-3">
             {getNotificationIcon(notification.type)}
@@ -51,7 +51,7 @@ const NotificationBanner = () => {
           <div className="flex-grow">{notification.message}</div>
           <button
             onClick={() => removeNotification(notification.id)}
-            className="ml-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="ml-4 text-gray-500 hover:text-gray-300 focus:outline-none dark:text-gray-300 dark:hover:text-white"
           >
             ×
           </button>
