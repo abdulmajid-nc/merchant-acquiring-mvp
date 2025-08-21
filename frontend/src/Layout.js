@@ -101,7 +101,17 @@ export default function Layout({ children }) {
               className="w-full flex items-center justify-center px-4 py-2 mb-2 text-sm font-medium rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               aria-label="Toggle light/dark mode"
             >
-              {theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+              {theme === 'dark' ? (
+                <>
+                  <MoonIcon />
+                  Dark Mode
+                </>
+              ) : (
+                <>
+                  <SunIcon />
+                  Light Mode
+                </>
+              )}
             </button>
             <Link 
               to="/admin-panel" 
